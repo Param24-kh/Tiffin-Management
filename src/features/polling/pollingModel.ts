@@ -1,7 +1,9 @@
 
 export interface IPoll{
     centerId:string;
+    accountId:string[];
     ItemName:Item[];
+    date:string;
 }
 
 export interface Item{

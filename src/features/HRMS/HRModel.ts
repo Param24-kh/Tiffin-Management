@@ -9,8 +9,8 @@ export interface IEmployee{
     employeeSalary:number;
     employeeJoiningDate:string;
     employeeLeavingDate:string;
-    employeeAttendance:IEmployeeAttendance;
-    employeeRemark:IRemark;
+    employeeAttendance:IEmployeeAttendance[];
+    employeeRemark:IRemark[];
 }
 
 export enum IRole{

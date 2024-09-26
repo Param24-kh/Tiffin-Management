@@ -1,4 +1,5 @@
 export interface IAccount {
+    centerId:string;
     name:string;
     phoneNumber:string;
     email:string;
@@ -10,4 +11,5 @@ export interface IAccount {
 export interface IAuth{
     username:string;
     password:string;
+    expiresAt:string;
 }
