@@ -10,7 +10,7 @@ export function generatePasskey(prefix: string | undefined | null): string {
     }
 }
 
-export function generateJWTToken(hospitalId: string, passkey: string): string {
-    const payLoad = { hospitalId, passkey }
+export function generateJWTToken(centerId: string, passkey: string): string {
+    const payLoad = { centerId, passkey }
     return jwt.sign(payLoad, "15m")
 }
