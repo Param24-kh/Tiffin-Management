@@ -1,37 +1,5 @@
 import 'package:flutter/material.dart';
-import 'src/files/PoolingSystemPage.dart'; // Use snake_case for file names
-import 'src/files/auth/signUp_page.dart'; // Move auth pages to separate folder
-import 'src/files/auth/login_page.dart'; // Move auth pages to separate folder
-import 'src/files/home_page.dart';
-
-void main() {
-  runApp(const DabbaApp());
-}
-
-class DabbaApp extends StatelessWidget {
-  const DabbaApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dabba',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFFFF6B00),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF6B00),
-        ),
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignUpPage(),
-        '/home': (context) => const HomePage(),
-      },
-    );
-  }
-}
+import 'home_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -44,8 +12,17 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    // Navigate to the next screen after 2 seconds
     Future.delayed(const Duration(seconds: 2), () {
+      // You can choose either navigation method based on your needs:
+
+      // Option 1: Navigate using named route
       Navigator.of(context).pushReplacementNamed('/login');
+
+      // Option 2: Navigate using MaterialPageRoute
+      // Navigator.of(context).pushReplacement(
+      //   MaterialPageRoute(builder: (context) => const HomePage()),
+      // );
     });
   }
 
