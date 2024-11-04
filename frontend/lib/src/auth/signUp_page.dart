@@ -10,33 +10,58 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handlePasskeyRequest() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       try {
-        // TODO: Implement your backend login logic here
+        // TODO: Add your API endpoint here
         // Example:
-        // await authService.login(
-        //   email: _emailController.text.trim(),
-        //   password: _passwordController.text,
+        // final response = await http.post(
+        //   Uri.parse('YOUR_BACKEND_URL/api/auth/register'),
+        //   body: {
+        //     'email': _emailController.text.trim(),
+        //   },
         // );
 
-        // If login successful, navigate to home
+        // TODO: Handle the API response
+        // if (response.statusCode == 200) {
+        //   // Email sent successfully
+        // } else {
+        //   throw Exception('Failed to send email');
+        // }
+
+        // Show success message
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Passkey has been sent to your email'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Add a slight delay before navigation so the user can see the success message
+        await Future.delayed(const Duration(seconds: 2));
+
+        // Navigate to login page if the widget is still mounted
+        if (mounted) {
+          Navigator.pushReplacementNamed(context,
+              '/login', // Make sure you have this route defined in your app
+              arguments: _emailController.text
+                  .trim() // Pass email to login page if needed
+              );
         }
       } catch (e) {
         // Show error message
@@ -45,11 +70,9 @@ class _SignUpPageState extends State<SignUpPage> {
             SnackBar(
               content: Text('Error: ${e.toString()}'),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
             ),
           );
-        }
-      } finally {
-        if (mounted) {
           setState(() {
             _isLoading = false;
           });
@@ -88,7 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Get your favourite meals delivered\nquickly right to your doorstep',
+                    'Choose the right tiffin for you',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
@@ -123,36 +146,13 @@ class _SignUpPageState extends State<SignUpPage> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'Password',
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            prefixIcon: const Icon(Icons.lock_outline),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleLogin,
+                            onPressed:
+                                _isLoading ? null : _handlePasskeyRequest,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
@@ -163,7 +163,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ? const CircularProgressIndicator(
                                     color: Colors.white)
                                 : const Text(
-                                    'Sign In',
+                                    'Send Passkey',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -171,30 +171,32 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/signup');
-                      },
-                      child: RichText(
-                        text: const TextSpan(
-                          text: 'Don\'t have an account? ',
-                          style: TextStyle(color: Colors.black87),
-                          children: [
-                            TextSpan(
-                              text: 'Sign Up',
-                              style: TextStyle(
-                                color: Color(0xFFFF6B00),
-                                fontWeight: FontWeight.bold,
+                        if (!_isLoading) ...[
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Already have an account? ',
+                                style: TextStyle(color: Colors.black87),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushReplacementNamed(
+                                      context, '/login');
+                                },
+                                child: const Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],

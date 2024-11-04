@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'src/files/PoolingSystemPage.dart'; // Use snake_case for file names
-import 'src/files/auth/signUp_page.dart'; // Move auth pages to separate folder
-import 'src/files/auth/login_page.dart'; // Move auth pages to separate folder
+import 'src/files/PoolingSystemPage.dart';
+import 'src/auth/signUp_page.dart';
+import 'src/auth/login_page.dart';
+import 'src/auth/forgot_passkey_page.dart'; // Add this import
 import 'src/files/home_page.dart';
 
 void main() {
@@ -28,6 +29,8 @@ class DabbaApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/home': (context) => const HomePage(),
+        '/forgot_passkey': (context) =>
+            const ForgotPasskeyPage(), // Add this route
       },
     );
   }
