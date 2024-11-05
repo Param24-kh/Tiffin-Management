@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'auth_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -10,7 +11,9 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  final _authService = AuthService();
   bool _isLoading = false;
+  bool _isServiceProvider = false;
 
   @override
   void dispose() {
@@ -25,54 +28,52 @@ class _SignUpPageState extends State<SignUpPage> {
       });
 
       try {
-        // TODO: Add your API endpoint here
-        // Example:
-        // final response = await http.post(
-        //   Uri.parse('YOUR_BACKEND_URL/api/auth/register'),
-        //   body: {
-        //     'email': _emailController.text.trim(),
-        //   },
-        // );
+        final Map<String, dynamic> signupData = {
+          'email': _emailController.text.trim(),
+          'isServiceProvider': _isServiceProvider,
+        };
 
-        // TODO: Handle the API response
-        // if (response.statusCode == 200) {
-        //   // Email sent successfully
-        // } else {
-        //   throw Exception('Failed to send email');
-        // }
+        print('Sending signup request...'); // Debug log
+
+        final response = await _authService.signup(signupData);
+
+        // Only proceed if the widget is still mounted
+        if (!mounted) return;
 
         // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Passkey has been sent to your email'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Signup successful! You can now login.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
 
-        // Add a slight delay before navigation so the user can see the success message
+        // Navigate after a brief delay
         await Future.delayed(const Duration(seconds: 2));
 
-        // Navigate to login page if the widget is still mounted
-        if (mounted) {
-          Navigator.pushReplacementNamed(context,
-              '/login', // Make sure you have this route defined in your app
-              arguments: _emailController.text
-                  .trim() // Pass email to login page if needed
-              );
-        }
+        if (!mounted) return;
+
+        Navigator.pushReplacementNamed(
+          context,
+          '/login',
+          arguments: _emailController.text.trim(),
+        );
       } catch (e) {
+        print('Error during signup: $e'); // Debug log
+
+        if (!mounted) return;
+
         // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } finally {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
           setState(() {
             _isLoading = false;
           });
@@ -145,6 +146,40 @@ class _SignUpPageState extends State<SignUpPage> {
                             }
                             return null;
                           },
+                        ),
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _isServiceProvider
+                                    ? 'Registering as Service Provider'
+                                    : 'Registering as Customer',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Switch(
+                                value: _isServiceProvider,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isServiceProvider = value;
+                                  });
+                                },
+                                activeColor: const Color(0xFFFF6B00),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
                         SizedBox(

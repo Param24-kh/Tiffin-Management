@@ -1,8 +1,8 @@
 import { getCollection, mongoErrorHander } from "../../db/db";
 import { Router, Request, Response } from "express";
-import {IAccount, IAuth} from "./accountModel";
+import {IAccount, ICenterAccount,IPasskey} from "./accountModel";
 import { generateJWTToken, generatePasskey } from "./ctrl_func";
-
+/*
 export const createCenter = async (req: Request, res: Response) => {
 try{    
     const{
@@ -43,7 +43,7 @@ try{
         message: "Internal Server Error"
     });}
 }
-
+*/
 /*
 export const createPasskey = async (req: Request, res: Response) => {
     try {
@@ -85,35 +85,140 @@ export const createPasskey = async (req: Request, res: Response) => {
     }
 };
 */
+
 export const logIn = async (req: Request, res: Response) => {
-    try {
-        const { username, password } = req.body
-        console.log(req.body);
-        const centerColl = await getCollection<IAccount>("TiffinCenter", null);
-        const result = await centerColl.findOne({
-            "auth.password": password,
-            $expr: {
-                $gte: ['$auth.expiresAt', new Date().toISOString()]
+    try{
+        const {email, passkey} = req.body;
+        let chechingpasskey = passkey.toString();
+        const checkLogin = chechingpasskey.substring(0,3);
+        if(checkLogin === "tms"){
+            const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
+            const serviceProviderResult = await serviceProviderColl.findOne({
+                "auth.email": email,
+                "auth.passkey": passkey
+            })
+            if(serviceProviderResult){
+                const token = generateJWTToken(serviceProviderResult.centerId, serviceProviderResult.auth.passkey);
+                return res.status(200).json({
+                    success: true,
+                    message: "Login Successful",
+                    token: token
+                });
+            }else{
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid Credentials"
+                });
             }
-        })
-        console.log(result);
-        if (!result) {
-            return res.status(404).json({ error: "Invalid Passkey" })
+        }else{
+            const centerColl = await getCollection<IAccount>("User", null);
+            const userResult = await centerColl.findOne({
+                "auth.email": email,
+                "auth.passkey": passkey
+            })
+            if(userResult){
+                const token = generateJWTToken(userResult.centerId, userResult.auth.passkey);
+                return res.status(200).json({
+                    success: true,
+                    message: "Login Successful",
+                    token: token
+                });
+            }else{
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid Credentials"
+                });
+            }
         }
-        const key = result?.auth?.password === password ? result.auth : null;
-        const user = {
-            centerId: result.centerId,
-            name: result.name,
-            phoneNumber: result.phoneNumber,
-            email: result.email,
-            address: result.address,
-            deliveryAddress:result.deliveryAddress,
-            username:result.auth.username,
-            sessionToken: generateJWTToken(result.centerId, key?.password ?? "")
-        }
-        return res.status(200).json({ user })
     } catch (e) {
-        mongoErrorHander(e, "Error in Login Handled", "Error in Login")
-        return res.status(500).json({ error: "Internal Server Error" })
+        console.error("Error in logIn", e);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}
+
+
+export const signUp = async (req: Request, res: Response) => {
+    try{
+        let {email, isServiceProvider} = req.body;
+
+        if(isServiceProvider){
+            const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
+            const serviceProviderResult = await serviceProviderColl.findOne({
+                "auth.email": email
+            })
+            if(serviceProviderResult){
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists"
+                });
+            }
+            const passkey = "tms"+generatePasskey(null);
+            const serviceProvider: ICenterAccount = {
+                centerId: generatePasskey("TMS"),
+                centerName: "",
+                phoneNumber:"",
+                centerUserName:"",
+                auth:{
+                    email: email,
+                    passkey:passkey,
+                    expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
+                },
+                address:"",
+                centerFeedback:"",
+                centerRating:0,
+            }
+            serviceProviderColl.createIndex({ "centerId": 1 },
+                { unique: true }).then((e) => 
+                    { console.log("created index") })
+            serviceProviderColl.insertOne(serviceProvider).then(() => { console.log("inserted") });
+            return res.status(201).json({
+                success: true,
+                message: "Tiffin center created successfully",
+                // to do setup nodemailer to send centerId and passkey to the user
+            });
+        }else {
+            const centerColl = await getCollection<IAccount>("User", null);
+            const userResult = await centerColl.findOne({
+                "auth.email": email
+            })
+            if(userResult){
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists"
+                });
+            }
+            const passkey = generatePasskey(null);
+            const user: IAccount = {
+                centerId: "",
+                Name:"",
+                phoneNumber:"",
+                userName:"",
+                auth:{
+                    email: email,
+                    passkey:passkey,
+                    expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
+                },
+                address:"",
+                previouslyRegisteredCenters:[]
+            }
+            centerColl.createIndex({ "centerId": 1 },
+                { unique: true }).then((e) => 
+                    { console.log("created index") })
+            centerColl.insertOne(user).then(() => { console.log("inserted") });
+            return res.status(201).json({
+                success: true,
+                message: "User created successfully"
+                // to do setup nodemailer to send centerId and passkey to the user
+            });
+        }
+    }catch(error:any){
+        console.error("Error in signUp", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }

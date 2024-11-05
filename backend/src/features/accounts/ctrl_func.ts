@@ -11,6 +11,9 @@ export function generatePasskey(prefix: string | undefined | null): string {
 }
 
 export function generateJWTToken(centerId: string, passkey: string): string {
+    if(centerId === "" || centerId === null){
+        centerId = "tmp_" + uuidv4().substring(0, 6).toUpperCase();
+    }
     const payLoad = { centerId, passkey }
     return jwt.sign(payLoad, "15m")
 }

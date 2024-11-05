@@ -1,8 +1,8 @@
-import { createCenter, logIn } from "./controller";
+import { logIn, signUp } from "./controller";
 import { Router} from "express";
 const accountRouter = Router()
 
-accountRouter.post("/createCenter", createCenter);
+accountRouter.post("/signup", signUp);
 accountRouter.post("/login", logIn);
 
 export default accountRouter;
