@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
           }),
         );
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 201) {
           if (mounted) {
             // Navigate to home page for correct credentials
             Navigator.pushReplacement(
