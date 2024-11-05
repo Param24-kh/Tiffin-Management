@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/src/files/main_wrapper.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'dart:io';
+
+// Import your AuthService
+import 'auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -16,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -30,97 +33,54 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      // First check for default credentials
-      if (_emailController.text == 'abc123@gmail.com' &&
-          _passwordController.text == '0310') {
-        await Future.delayed(
-            const Duration(milliseconds: 500)); // Simulate network delay
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainWrapper()),
-          );
-        }
-        return;
-      }
-
-      // If not default credentials, try API login
       try {
-        final response = await http.post(
-          Uri.parse('http://localhost:3000/api/auth/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'email': _emailController.text,
-            'passkey':
-                _passwordController.text, // Changed from password to passkey
-          }),
-        );
-
-        if (!mounted) return;
-
-        final responseData = json.decode(response.body);
-        final message = responseData['message'] ?? 'An error occurred';
-
-        switch (response.statusCode) {
-          case 200:
-          case 201:
-            // Successfully logged in
+        // First check for default credentials
+        if (_emailController.text == 'abc123@gmail.com' &&
+            _passwordController.text == '0310') {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const MainWrapper()),
             );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.green,
-              ),
-            );
-            break;
+          }
+          return;
+        }
 
-          case 401:
-            // Invalid credentials
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.red,
-              ),
-            );
-            break;
+        // If not default credentials, try API login
+        final response = await _authService.login(
+          _emailController.text,
+          _passwordController.text,
+        );
 
-          case 400:
-            // Bad request
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.orange,
-              ),
-            );
-            break;
+        if (!mounted) return;
 
-          case 500:
-            // Server error
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Server error occurred. Please try again later.'),
-                backgroundColor: Colors.red,
-              ),
-            );
-            break;
+        // Successfully logged in
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
+        );
 
-          default:
-            // Unknown error
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Unexpected error: $message'),
-                backgroundColor: Colors.red,
-              ),
-            );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Login successful'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } on HttpException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Connection error: ${e.toString()}'),
+              content: Text('An unexpected error occurred: $e'),
               backgroundColor: Colors.red,
             ),
           );
