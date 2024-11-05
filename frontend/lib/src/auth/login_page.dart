@@ -47,48 +47,80 @@ class _LoginPageState extends State<LoginPage> {
       // If not default credentials, try API login
       try {
         final response = await http.post(
-          Uri.parse('http://10.0.2.2:3000/api/auth/login'),
+          Uri.parse('http://localhost:3000/api/auth/login'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'email': _emailController.text,
-            'password': _passwordController.text,
+            'passkey':
+                _passwordController.text, // Changed from password to passkey
           }),
         );
 
-        if (response.statusCode == 201) {
-          if (mounted) {
-            // Navigate to home page for correct credentials
+        if (!mounted) return;
+
+        final responseData = json.decode(response.body);
+        final message = responseData['message'] ?? 'An error occurred';
+
+        switch (response.statusCode) {
+          case 200:
+          case 201:
+            // Successfully logged in
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const MainWrapper()),
             );
-
-            // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Login successful'),
+              SnackBar(
+                content: Text(message),
                 backgroundColor: Colors.green,
               ),
             );
-          }
-        } else {
-          if (mounted) {
-            // Show error message
+            break;
+
+          case 401:
+            // Invalid credentials
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                    json.decode(response.body)['message'] ?? 'Login failed'),
+                content: Text(message),
                 backgroundColor: Colors.red,
               ),
             );
-          }
+            break;
+
+          case 400:
+            // Bad request
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            break;
+
+          case 500:
+            // Server error
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Server error occurred. Please try again later.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            break;
+
+          default:
+            // Unknown error
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Unexpected error: $message'),
+                backgroundColor: Colors.red,
+              ),
+            );
         }
       } catch (e) {
         if (mounted) {
-          // Show error message for network/server errors
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to connect to the server'),
+            SnackBar(
+              content: Text('Connection error: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );

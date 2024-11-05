@@ -118,7 +118,7 @@ export const logIn = async (req: Request, res: Response) => {
             })
             if(userResult){
                 const token = generateJWTToken(userResult.centerId, userResult.auth.passkey);
-                return res.status(200).json({
+                return res.status(201).json({
                     success: true,
                     message: "Login Successful",
                     token: token
@@ -170,9 +170,6 @@ export const signUp = async (req: Request, res: Response) => {
                 centerFeedback:"",
                 centerRating:0,
             }
-            serviceProviderColl.createIndex({ "centerId": 1 },
-                { unique: true }).then((e) => 
-                    { console.log("created index") })
             serviceProviderColl.insertOne(serviceProvider).then(() => { console.log("inserted") });
             return res.status(201).json({
                 success: true,
@@ -204,9 +201,6 @@ export const signUp = async (req: Request, res: Response) => {
                 address:"",
                 previouslyRegisteredCenters:[]
             }
-            centerColl.createIndex({ "centerId": 1 },
-                { unique: true }).then((e) => 
-                    { console.log("created index") })
             centerColl.insertOne(user).then(() => { console.log("inserted") });
             return res.status(201).json({
                 success: true,
