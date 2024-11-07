@@ -2,6 +2,7 @@ import { getCollection, mongoErrorHander } from "../../db/db";
 import { Router, Request, Response } from "express";
 import {IAccount, ICenterAccount,IPasskey} from "./accountModel";
 import { generateJWTToken, generatePasskey } from "./ctrl_func";
+import { sendWelcomeEmail } from "../mail/controller";
 /*
 export const createCenter = async (req: Request, res: Response) => {
 try{    
@@ -43,47 +44,6 @@ try{
         message: "Internal Server Error"
     });}
 }
-*/
-/*
-export const createPasskey = async (req: Request, res: Response) => {
-    try {
-        const { empId, role, hospitalId } = req.query; //mongoId
-        const mongoEmpId = new ObjectId(empId as string);
-        let date = new Date().setFullYear(2025);
-
-        const passkey: IPasskey = {
-            role: role?.toString(), //role of the employee
-            empId: mongoEmpId.toString(),
-            expiresAt: new Date(date).toISOString(),
-            key: generatePasskey(null),
-        };
-
-        const hospitalColl = await getCollection<IHospital>("Hospitals", null);
-        const result = await hospitalColl.findOneAndUpdate(
-            { hospitalId: hospitalId?.toString() },
-            { $push: { passkeys: passkey } },
-            { returnDocument: "after" }
-        );
-
-        if (!result) {
-            return res.status(404).json({
-                success: false,
-                message: "Hospital not found"
-            });
-        } else {
-            return res.status(201).json({
-                success: true,
-                message: "Passkey created successfully"
-            });
-        }
-    } catch (error: any) {
-        console.error("Error in createPasskey", error);
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
 */
 
 export const logIn = async (req: Request, res: Response) => {
@@ -141,78 +101,92 @@ export const logIn = async (req: Request, res: Response) => {
 
 
 export const signUp = async (req: Request, res: Response) => {
-    try{
-        let {email, isServiceProvider} = req.body;
+    try {
+        const { email, isServiceProvider } = req.body;
 
-        if(isServiceProvider){
+        if (isServiceProvider) {
             const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
             const serviceProviderResult = await serviceProviderColl.findOne({
                 "auth.email": email
-            })
-            if(serviceProviderResult){
+            });
+            
+            if (serviceProviderResult) {
                 return res.status(409).json({
                     success: false,
                     message: "Email already exists"
                 });
             }
-            const passkey = "tms"+generatePasskey(null);
+            
+            const passkey = "tms" + generatePasskey(null);
             const serviceProvider: ICenterAccount = {
                 centerId: generatePasskey("TMS"),
                 centerName: "",
-                phoneNumber:"",
-                centerUserName:"",
-                auth:{
+                phoneNumber: "",
+                centerUserName: "",
+                auth: {
                     email: email,
-                    passkey:passkey,
+                    passkey: passkey,
                     expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
                 },
-                address:"",
-                centerFeedback:"",
-                centerRating:0,
-            }
-            serviceProviderColl.insertOne(serviceProvider).then(() => { console.log("inserted") });
+                address: "",
+                centerFeedback: "",
+                centerRating: 0,
+            };
+            
+            await serviceProviderColl.insertOne(serviceProvider);
+            console.log("Service provider inserted");
+
+            // Send welcome email with passkey
+            await sendWelcomeEmail(email, "Tiffin Center Created Successfully", passkey, serviceProvider.centerId);
+
             return res.status(201).json({
                 success: true,
-                message: "Tiffin center created successfully",
-                // to do setup nodemailer to send centerId and passkey to the user
+                message: "Tiffin center created successfully"
             });
-        }else {
-            const centerColl = await getCollection<IAccount>("User", null);
-            const userResult = await centerColl.findOne({
+        } else {
+            const userColl = await getCollection<IAccount>("User", null);
+            const userResult = await userColl.findOne({
                 "auth.email": email
-            })
-            if(userResult){
+            });
+
+            if (userResult) {
                 return res.status(409).json({
                     success: false,
                     message: "Email already exists"
                 });
             }
+
             const passkey = generatePasskey(null);
             const user: IAccount = {
                 centerId: "",
-                Name:"",
-                phoneNumber:"",
-                userName:"",
-                auth:{
+                Name: "",
+                phoneNumber: "",
+                userName: "",
+                auth: {
                     email: email,
-                    passkey:passkey,
+                    passkey: passkey,
                     expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
                 },
-                address:"",
-                previouslyRegisteredCenters:[]
-            }
-            centerColl.insertOne(user).then(() => { console.log("inserted") });
+                address: "",
+                previouslyRegisteredCenters: []
+            };
+
+            await userColl.insertOne(user);
+            console.log("User inserted");
+
+            // Send welcome email with passkey
+            await sendWelcomeEmail(email, "User Account Created Successfully", passkey);
+
             return res.status(201).json({
                 success: true,
                 message: "User created successfully"
-                // to do setup nodemailer to send centerId and passkey to the user
             });
         }
-    }catch(error:any){
+    } catch (error: any) {
         console.error("Error in signUp", error);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"
         });
     }
-}
+};
