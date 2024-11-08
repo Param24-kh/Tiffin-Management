@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'PoolingSystemPage.dart';
 import 'profile_page.dart';
+import 'search_page.dart';
+import 'services_page.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({Key? key}) : super(key: key);
@@ -17,8 +19,8 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _pages = [
     const HomePage(),
     const SearchPage(),
-    const PoolingSystemPage(),
-    const ServicesPage(),
+    const PollSystem(),
+    const TiffinServicePage(),
     const ProfilePage(),
   ];
 
@@ -60,41 +62,6 @@ class _MainWrapperState extends State<MainWrapper> {
             label: 'Profile',
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Create SearchPage and ServicesPage
-class SearchPage extends StatelessWidget {
-  const SearchPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search'),
-        backgroundColor: const Color(0xFFFF6B00),
-      ),
-      body: const Center(
-        child: Text('Search Page Content'),
-      ),
-    );
-  }
-}
-
-class ServicesPage extends StatelessWidget {
-  const ServicesPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Services'),
-        backgroundColor: const Color(0xFFFF6B00),
-      ),
-      body: const Center(
-        child: Text('Services Page Content'),
       ),
     );
   }

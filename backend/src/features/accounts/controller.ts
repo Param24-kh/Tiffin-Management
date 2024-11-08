@@ -190,3 +190,21 @@ export const signUp = async (req: Request, res: Response) => {
         });
     }
 };
+
+export const getAllUsers = async(req: Request, res: Response) => {
+    try{
+        const userColl = await getCollection<IAccount>("User", null);
+        const users = await userColl.find().toArray();
+        return res.status(200).json({
+            success: true,
+            users: users
+        });
+    
+    }catch(error:any ){
+        console.error("Error in getAllUsers", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}

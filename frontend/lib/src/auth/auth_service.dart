@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class AuthService {
   static String get baseUrl {
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000/api';
+      return 'http://192.168.1.2:3000/api';
     } else if (Platform.isIOS) {
       return 'http://127.0.0.1:3000/api';
     }
