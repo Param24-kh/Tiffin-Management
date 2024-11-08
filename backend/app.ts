@@ -32,5 +32,5 @@ app.use('/api', apiRouter);
 
 server.listen(PORT, () => {
     const address = server.address() as AddressInfo;
-    console.log(`Server is running on port http://localhost:${PORT}`);
+    console.log(`Server is running on port http://192.168.1.2:${PORT}`);
 })
