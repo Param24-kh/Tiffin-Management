@@ -1,6 +1,6 @@
-import { getCollection, mongoErrorHander } from "../../db/db";
-import { Router, Request, Response } from "express";
-import {IAccount, ICenterAccount,IPasskey} from "./accountModel";
+import { getCollection } from "../../db/db";
+import { Request, Response } from "express";
+import {IAccount, ICenterAccount} from "./accountModel";
 import { generateJWTToken, generatePasskey } from "./ctrl_func";
 import { sendWelcomeEmail } from "../mail/controller";
 /*
@@ -103,8 +103,8 @@ export const logIn = async (req: Request, res: Response) => {
 export const signUp = async (req: Request, res: Response) => {
     try {
         const { email, isServiceProvider } = req.body;
-
         if (isServiceProvider) {
+            const {centerName, phoneNumber, address} = req.body;
             const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
             const serviceProviderResult = await serviceProviderColl.findOne({
                 "auth.email": email
@@ -120,15 +120,15 @@ export const signUp = async (req: Request, res: Response) => {
             const passkey = "tms" + generatePasskey(null);
             const serviceProvider: ICenterAccount = {
                 centerId: generatePasskey("TMS"),
-                centerName: "",
-                phoneNumber: "",
+                centerName: centerName || "",
+                phoneNumber: phoneNumber || "",
                 centerUserName: "",
                 auth: {
                     email: email,
                     passkey: passkey,
                     expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
                 },
-                address: "",
+                address: address  || "",
                 centerFeedback: "",
                 centerRating: 0,
             };
@@ -168,7 +168,57 @@ export const signUp = async (req: Request, res: Response) => {
                     expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
                 },
                 address: "",
-                previouslyRegisteredCenters: []
+                paymentMethod: {
+                    card: {
+                        cardNumber: "",
+                        expiryDate: "",
+                        cvv: "",
+                        cardHolderName: "",
+                        cardType: "",
+                        cardIssuer: "",
+                        cardNetwork: "",
+                        cardCountry: "",
+                        cardBank: "",
+                        cardBrand: "",
+                        cardStatus: "",
+                        cardCurrency: "",
+                        cardLimit: 0,
+                        cardBalance: 0,
+                        cardTransactions: []
+                    },
+                    bank: {
+                        accountNumber: "",
+                        ifsc:"",
+                        accountHolderName: "",
+                        bankName: "",
+                        bankBranch: "",
+                        bankCountry: "",
+                        bankCurrency: "",
+                        bankBalance: 0,
+                        bankTransactions: []
+                    },
+                    upi:{
+                        upiId: "",
+                        upiHolderName: "",
+                        upiBank: "",
+                        upiCountry: "",
+                        upiCurrency: "",
+                        upiBalance: 0,
+                        upiTransactions: []
+                    },
+                    wallet: {
+                        walletId: "",
+                        walletHolderName: "",
+                        walletCountry: "",
+                        walletCurrency: "",
+                        walletBalance: 0,
+                        walletTransactions: []
+                    }
+                    
+                },
+                previouslyRegisteredCenters: [],
+                activeSubscriptions: [],
+                previousSubscriptions: []
             };
 
             await userColl.insertOne(user);
@@ -202,6 +252,119 @@ export const getAllUsers = async(req: Request, res: Response) => {
     
     }catch(error:any ){
         console.error("Error in getAllUsers", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}
+
+export const updateUserAccount = async(req: Request, res: Response) =>{
+    try{
+        const {email, passkey} = req.body;
+        const userColl = await getCollection<IAccount>("User", null);
+        const userResult = await userColl.findOne({
+            "auth.email": email,
+            "auth.passkey": passkey
+        });
+        if(userResult){
+            const {Name, phoneNumber, userName, address} = req.body;
+            const updatedUser: IAccount = {
+                centerId: userResult.centerId || "",
+                Name: Name || userResult.Name,
+                phoneNumber: phoneNumber || userResult.phoneNumber,
+                userName: userName || userResult.userName,
+                auth: userResult.auth,
+                address: address || userResult.address,
+                paymentMethod: userResult.paymentMethod || {
+                    card: {
+                        cardNumber: "",
+                        expiryDate: "",
+                        cvv: "",
+                        cardHolderName: "",
+                        cardType: "",
+                        cardIssuer: "",
+                        cardNetwork: "",
+                        cardCountry: "",
+                        cardBank: "",
+                        cardBrand: "",
+                        cardStatus: "",
+                        cardCurrency: "",
+                        cardLimit: 0,
+                        cardBalance: 0,
+                        cardTransactions: []
+                    },
+                    bank: {
+                        accountNumber: "",
+                        ifsc:"",
+                        accountHolderName: "",
+                        bankName: "",
+                        bankBranch: "",
+                        bankCountry: "",
+                        bankCurrency: "",
+                        bankBalance: 0,
+                        bankTransactions: []
+                    },
+                    upi:{
+                        upiId: "",
+                        upiHolderName: "",
+                        upiBank: "",
+                        upiCountry: "",
+                        upiCurrency: "",
+                        upiBalance: 0,
+                        upiTransactions: []
+                    },
+                    wallet: {
+                        walletId: "",
+                        walletHolderName: "",
+                        walletCountry: "",
+                        walletCurrency: "",
+                        walletBalance: 0,
+                        walletTransactions: []
+                    }
+                },
+                previouslyRegisteredCenters: userResult.previouslyRegisteredCenters || [],
+                activeSubscriptions: userResult.activeSubscriptions || [],
+                previousSubscriptions: userResult.previousSubscriptions || []
+            };
+            await userColl.updateOne({
+                "auth.email": email,
+                "auth.passkey": passkey
+            }, {
+                $set: updatedUser
+            });
+            return res.status(200).json({
+                success: true,
+                message: "User account updated successfully"
+            });
+        }else{
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Credentials"
+            });
+        }
+    }catch(error:any){
+        console.error("Error in updateUserAccount", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}
+
+export const searchServiceProvider = async(req: Request, res: Response) => {
+    try{
+        const {centerName} = req.body;
+        const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
+        const serviceProviderResult = await serviceProviderColl.find({
+            "centerName": centerName
+        }).toArray();
+        return res.status(200).json({
+            success: true,
+            serviceProviders: serviceProviderResult
+        });
+    }catch(error:any){
+        console.error("Error in searchServiceProvider", error);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"

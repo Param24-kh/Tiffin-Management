@@ -1,13 +1,13 @@
-
 export interface IPoll{
-    centerId:string;
-    accountId:string[];
-    ItemName:Item[];
-    date:string;
+    pollId:string;
+    centerId:string | undefined;
+    centerName:string;
+    items: IPollItem[];
+    userNameResponse: string[];
 }
 
-export interface Item{
-    ItemId:string;
-    ItemName:string;
-    count:number;
+export interface IPollItem{
+    itemId:string;
+    itemName:string;
+    itemRating:number;
 }

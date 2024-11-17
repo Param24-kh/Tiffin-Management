@@ -10,4 +10,4 @@ hrRouter.post("/updateAttendance", updateAttendance);
 hrRouter.post("/addRemark", addRemark);
 hrRouter.delete("/deleteEmployee", deleteEmployee);
 
-export default hrRouter
+export default hrRouter;

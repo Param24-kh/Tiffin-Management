@@ -145,7 +145,6 @@ export const addRemark = async (req: Request, res: Response) => {
     }
 }
 
-
 export const updateEmployee = async (req: Request, res: Response) => {
     try{
         const {centerId, empId} = req.query;
