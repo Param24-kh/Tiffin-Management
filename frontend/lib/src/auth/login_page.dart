@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:frontend/src/files/main_wrapper.dart';
 import 'dart:io';
 
-// Import your AuthService
+// Import your AuthService and Dashboard
 import 'auth_service.dart';
+import '../serviceProvider/dashboard.dart'; // Make sure to import your dashboard screen
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -27,6 +28,10 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  bool _isServiceProvider(String passkey) {
+    return passkey.toLowerCase().startsWith('tms');
+  }
+
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -34,9 +39,11 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
-        // First check for default credentials
-        if (_emailController.text == 'abc123@gmail.com' &&
-            _passwordController.text == '0310') {
+        final email = _emailController.text;
+        final passkey = _passwordController.text;
+
+        // Check for default user credentials
+        if (email == 'abc123@gmail.com' && passkey == '0310') {
           await Future.delayed(const Duration(milliseconds: 500));
           if (mounted) {
             Navigator.pushReplacement(
@@ -47,15 +54,37 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // If not default credentials, try API login
-        final response = await _authService.login(
-          _emailController.text,
-          _passwordController.text,
-        );
+        // Check for dashboard test user credentials
+        if (email == 'dashboard123@gmail.com' && passkey == 'tms0310') {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          }
+          return;
+        }
+
+        // Check if it's a service provider login
+        if (_isServiceProvider(passkey)) {
+          // You might want to add additional validation for service providers here
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          }
+          return;
+        }
+
+        // If none of the above, proceed with regular API login
+        final response = await _authService.login(email, passkey);
 
         if (!mounted) return;
 
-        // Successfully logged in
+        // Regular user login successful
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainWrapper()),
