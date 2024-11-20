@@ -1,188 +1,145 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../auth/login_page.dart'; // Import the interfaces
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+class ProfilePage extends StatefulWidget {
+  final IAccount userProfile;
 
-  // Function to handle logout process
-  Future<void> _handleLogout(BuildContext context) async {
+  const ProfilePage({Key? key, required this.userProfile}) : super(key: key);
+
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  late IAccount _userProfile;
+  bool _isEditing = false;
+  bool _isLoading = false;
+
+  late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
+
+  @override
+  void initState() {
+    super.initState();
+    _userProfile = widget.userProfile;
+    _initControllers();
+  }
+
+  void _initControllers() {
+    _nameController = TextEditingController(text: _userProfile.name);
+    _phoneController = TextEditingController(text: _userProfile.phoneNumber);
+    _addressController = TextEditingController(text: _userProfile.address);
+  }
+
+  Future<void> _updateProfile() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      // Show confirmation dialog
-      bool? shouldLogout = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Are you sure you want to logout?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                ),
-                child: const Text('Logout'),
-              ),
-            ],
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3000/api/auth/update'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _userProfile.auth.email,
+          'passkey': _userProfile.auth.passkey,
+          'Name': _nameController.text,
+          'phoneNumber': _phoneController.text,
+          'address': _addressController.text,
+        }),
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      final responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200 && responseBody['success'] == true) {
+        setState(() {
+          _userProfile = IAccount(
+            centerId: _userProfile.centerId,
+            name: _nameController.text,
+            phoneNumber: _phoneController.text,
+            userName: _userProfile.userName,
+            auth: _userProfile.auth,
+            address: _addressController.text,
+            paymentMethod: _userProfile.paymentMethod,
+            previouslyRegisteredCenters:
+                _userProfile.previouslyRegisteredCenters,
+            activeSubscriptions: _userProfile.activeSubscriptions,
+            previousSubscriptions: _userProfile.previousSubscriptions,
           );
-        },
-      );
+          _isEditing = false;
+        });
 
-      // Return if user cancels logout
-      if (shouldLogout != true) return;
-
-      // Check if context is still valid
-      if (!context.mounted) return;
-      BuildContext dialogContext = context;
-
-      // Show loading indicator
-      showDialog(
-        context: dialogContext,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      // TODO: Add your backend logout logic here
-      // Example:
-      // await authService.logout();
-      // await clearUserData();
-
-      // Simulate network delay (remove this in production)
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Check context again before navigation
-      if (!dialogContext.mounted) return;
-
-      // Close loading dialog
-      Navigator.of(dialogContext).pop();
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(dialogContext).pushNamedAndRemoveUntil(
-        '/login', // Replace with your login route name
-        (Route<dynamic> route) => false,
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  responseBody['message'] ?? 'Profile updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(responseBody['message'] ?? 'Error updating profile')),
+        );
+      }
     } catch (e) {
-      // Show error message if context is still valid
-      if (!context.mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Logout failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error updating profile: ${e.toString()}')),
       );
     }
   }
 
-  Widget _buildProfileHeader() {
-    return Column(
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.orange,
-            border: Border.all(
-              color: Colors.white,
-              width: 3,
+  Future<void> _handleLogout() async {
+    bool? shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
             ),
-          ),
-          child: const CircleAvatar(
-            radius: 48,
-            backgroundColor: Colors.orange,
-            child: Icon(
-              Icons.person,
-              size: 50,
-              color: Colors.white,
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Logout'),
             ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Abc demo Id',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'abc123@gmail.com',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
+          ],
+        );
+      },
     );
-  }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required Color iconColor,
-    VoidCallback? onTap,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          color: iconColor,
-          size: 24,
-        ),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: Colors.grey,
-      ),
-      onTap: onTap,
-    );
-  }
+    if (shouldLogout == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(
+            'userToken'); // Remove specific token instead of clearing all
+        await prefs.remove('userEmail');
 
-  Widget _buildLogoutButton(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _handleLogout(context),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red,
-          side: const BorderSide(color: Colors.red),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        icon: const Icon(Icons.logout),
-        label: const Text(
-          'Log out',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/login',
+          (Route<dynamic> route) => false,
+        );
+      } catch (e) {
+        print('Logout error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   @override
@@ -192,57 +149,143 @@ class ProfilePage extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const SizedBox(height: 20),
               _buildProfileHeader(),
-              _buildMenuItem(
-                icon: Icons.person_outline,
-                title: 'My Profile',
-                iconColor: Colors.orange,
-                onTap: () {},
-              ),
-              _buildMenuItem(
-                icon: Icons.shopping_bag_outlined,
-                title: 'My Orders',
-                iconColor: Colors.blue,
-                onTap: () {},
-              ),
-              _buildMenuItem(
-                icon: Icons.location_on_outlined,
-                title: 'Delivery Address',
-                iconColor: Colors.green,
-                onTap: () {},
-              ),
-              _buildMenuItem(
-                icon: Icons.payment_outlined,
-                title: 'Payment Methods',
-                iconColor: Colors.purple,
-                onTap: () {},
-              ),
-              _buildMenuItem(
-                icon: Icons.mail_outline,
-                title: 'Contact Us',
-                iconColor: Colors.orange,
-                onTap: () {},
-              ),
-              _buildMenuItem(
-                icon: Icons.settings_outlined,
-                title: 'Settings',
-                iconColor: Colors.grey,
-                onTap: () {},
-              ),
-              _buildMenuItem(
-                icon: Icons.help_outline,
-                title: 'Help & FAQ',
-                iconColor: Colors.blue,
-                onTap: () {},
-              ),
-              const SizedBox(height: 20),
-              _buildLogoutButton(context),
-              const SizedBox(height: 20),
+              _isEditing ? _buildEditProfileForm() : _buildProfileActions(),
+              _buildSubscriptionSection(),
+              ..._buildOtherMenuItems(),
+              _buildLogoutButton(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 50,
+          backgroundColor: Colors.orange,
+          child: Icon(Icons.person, size: 50, color: Colors.white),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _userProfile.name,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          _userProfile.auth.email,
+          style: const TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditProfileForm() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
+          TextField(
+            controller: _phoneController,
+            decoration: const InputDecoration(labelText: 'Phone Number'),
+          ),
+          TextField(
+            controller: _addressController,
+            decoration: const InputDecoration(labelText: 'Address'),
+          ),
+          const SizedBox(height: 16),
+          _isLoading
+              ? const CircularProgressIndicator()
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => setState(() => _isEditing = false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _updateProfile,
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileActions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () => setState(() => _isEditing = true),
+          child: const Text('Edit Profile'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubscriptionSection() {
+    return ExpansionTile(
+      title: const Text('Subscriptions & Centers'),
+      children: [
+        ListTile(
+          title: const Text('Active Subscriptions'),
+          subtitle: Text(_userProfile.activeSubscriptions.join(', ')),
+        ),
+        ListTile(
+          title: const Text('Previously Registered Centers'),
+          subtitle: Text(_userProfile.previouslyRegisteredCenters.join(', ')),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildOtherMenuItems() {
+    return [
+      _buildMenuItem(
+        icon: Icons.shopping_bag_outlined,
+        title: 'My Orders',
+        onTap: () {},
+      ),
+      _buildMenuItem(
+        icon: Icons.location_on_outlined,
+        title: 'Delivery Address',
+        onTap: () {},
+      ),
+      _buildMenuItem(
+        icon: Icons.payment_outlined,
+        title: 'Payment Methods',
+        onTap: () {},
+      ),
+    ];
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return ElevatedButton(
+      onPressed: _handleLogout,
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+      child: const Text('Logout'),
     );
   }
 }

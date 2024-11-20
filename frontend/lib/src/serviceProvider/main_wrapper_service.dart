@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/src/files/services_page.dart';
+import 'package:frontend/src/serviceProvider/profile_page.dart';
+import './PoolingSystemPage.dart';
 import '../auth/login_page.dart';
 import 'home_page.dart';
-import 'PoolingSystemPage.dart';
-import 'profile_page.dart';
-import 'search_page.dart';
-import 'services_page.dart';
 
-class MainWrapper extends StatefulWidget {
-  final IAccount userProfile;
+class MainWrapperService extends StatefulWidget {
+  final ICenterAccount userProfile;
 
-  const MainWrapper({Key? key, required this.userProfile}) : super(key: key);
+  const MainWrapperService({Key? key, required this.userProfile})
+      : super(key: key);
 
   @override
-  State<MainWrapper> createState() => _MainWrapperState();
+  State<MainWrapperService> createState() => _MainWrapperServiceState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
+class _MainWrapperServiceState extends State<MainWrapperService> {
   int _selectedIndex = 0;
 
   late List<Widget> _pages;
@@ -24,11 +24,10 @@ class _MainWrapperState extends State<MainWrapper> {
   void initState() {
     super.initState();
     _pages = [
-      const HomePage(),
-      const SearchPage(),
-      const PollSystem(),
+      const ServiceProviderHomePage(),
+      PollSystem(centerId: widget.userProfile.centerId),
       const TiffinServicePage(),
-      ProfilePage(userProfile: widget.userProfile),
+      ServiceProviderProfilePage(userProfile: widget.userProfile)
     ];
   }
 
@@ -52,10 +51,6 @@ class _MainWrapperState extends State<MainWrapper> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.poll),
