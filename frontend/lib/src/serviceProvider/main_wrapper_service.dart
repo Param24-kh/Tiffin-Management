@@ -1,26 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/src/files/services_page.dart';
+import 'package:frontend/src/serviceProvider/profile_page.dart';
+import './PoolingSystemPage.dart';
+import '../auth/login_page.dart';
 import 'home_page.dart';
-import 'PoolingSystemPage.dart';
-import 'profile_page.dart';
-import 'services_page.dart';
 
 class MainWrapperService extends StatefulWidget {
-  const MainWrapperService({Key? key}) : super(key: key);
+  final ICenterAccount userProfile;
+
+  const MainWrapperService({Key? key, required this.userProfile})
+      : super(key: key);
 
   @override
-  State<MainWrapperService> createState() => _MainWrapperState();
+  State<MainWrapperService> createState() => _MainWrapperServiceState();
 }
 
-class _MainWrapperState extends State<MainWrapperService> {
+class _MainWrapperServiceState extends State<MainWrapperService> {
   int _selectedIndex = 0;
 
-  // Pages in the order they appear in bottom nav
-  final List<Widget> _pages = [
-    const ServiceProviderHomePage(),
-    const PollSystem(),
-    const TiffinServicePage(),
-    const ProfilePage(),
-  ];
+  late List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const ServiceProviderHomePage(),
+      PollSystem(centerId: widget.userProfile.centerId),
+      const TiffinServicePage(),
+      ServiceProviderProfilePage(userProfile: widget.userProfile)
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

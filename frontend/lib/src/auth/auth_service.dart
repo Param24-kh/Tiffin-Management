@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class AuthService {
   static String get baseUrl {
     if (Platform.isAndroid) {
-      return 'http://192.168.1.2:3000/api';
+      return 'http://10.0.2.2:3000/api';
     } else if (Platform.isIOS) {
       return 'http://127.0.0.1:3000/api';
     }
@@ -21,7 +21,7 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': email,
-          'passkey': passkey, // Changed from password to passkey
+          'passkey': passkey,
         }),
       )
           .timeout(
@@ -34,7 +34,11 @@ class AuthService {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return responseData;
+        return {
+          'accountType': responseData['accountType'],
+          'profile': responseData['profile'],
+          'message': 'Login successful'
+        };
       } else {
         throw HttpException(responseData['message'] ?? 'Login failed');
       }
@@ -51,7 +55,7 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> signup(Map<String, dynamic> signupData) async {
+  Future<Map<String, dynamic>> signup(Map signupData) async {
     try {
       final response = await http
           .post(

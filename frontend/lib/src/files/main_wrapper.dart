@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/login_page.dart';
 import 'home_page.dart';
 import 'PoolingSystemPage.dart';
 import 'profile_page.dart';
@@ -6,7 +7,9 @@ import 'search_page.dart';
 import 'services_page.dart';
 
 class MainWrapper extends StatefulWidget {
-  const MainWrapper({Key? key}) : super(key: key);
+  final IAccount userProfile;
+
+  const MainWrapper({Key? key, required this.userProfile}) : super(key: key);
 
   @override
   State<MainWrapper> createState() => _MainWrapperState();
@@ -15,14 +18,19 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
 
-  // Pages in the order they appear in bottom nav
-  final List<Widget> _pages = [
-    const HomePage(),
-    const SearchPage(),
-    const PollSystem(),
-    const TiffinServicePage(),
-    const ProfilePage(),
-  ];
+  late List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const HomePage(),
+      const SearchPage(),
+      const PollSystem(),
+      const TiffinServicePage(),
+      ProfilePage(userProfile: widget.userProfile),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
