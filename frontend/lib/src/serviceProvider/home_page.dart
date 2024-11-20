@@ -81,6 +81,9 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
   }
 
   Widget _buildPollResultsCard() {
+    // Total votes calculation
+    final totalVotes = 120 + 90 + 60;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -107,12 +110,42 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
             ),
           ),
           const SizedBox(height: 16),
+          _buildPollResultListItem(
+            'North Indian',
+            120,
+            totalVotes,
+            Colors.orange.shade400,
+          ),
+          _buildPollResultListItem(
+            'South Indian',
+            90,
+            totalVotes,
+            Colors.orange.shade300,
+          ),
+          _buildPollResultListItem(
+            'Continental',
+            60,
+            totalVotes,
+            Colors.orange.shade200,
+          ),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildPollResultItem('North Indian', 45),
-              _buildPollResultItem('South Indian', 35),
-              _buildPollResultItem('Continental', 20),
+              Text(
+                'Total Participants',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '$totalVotes',
+                style: TextStyle(
+                  color: Color(0xFFFF6B00),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ],
@@ -120,36 +153,43 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
     );
   }
 
-  Widget _buildPollResultItem(String option, int percentage) {
-    return Column(
-      children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.orange.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
+  Widget _buildPollResultListItem(
+      String option, int votes, int totalVotes, Color color) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
             child: Text(
-              '$percentage%',
+              option,
               style: const TextStyle(
-                color: Color(0xFFFF6B00),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          option,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
+          Expanded(
+            flex: 2,
+            child: LinearProgressIndicator(
+              value: votes / totalVotes,
+              backgroundColor: color.withOpacity(0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 10,
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 1,
+            child: Text(
+              '$votes votes',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
