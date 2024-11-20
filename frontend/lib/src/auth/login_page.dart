@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/src/files/main_wrapper.dart';
+import '../serviceProvider/main_wrapper_service.dart';
 import 'dart:io';
 
-// Import your AuthService
 import 'auth_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -27,6 +27,10 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  bool _isServiceProviderLogin(String passkey) {
+    return passkey.toLowerCase().startsWith('tms');
+  }
+
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -34,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
-        // First check for default credentials
+        // Check for static credentials first
         if (_emailController.text == 'abc123@gmail.com' &&
             _passwordController.text == '0310') {
           await Future.delayed(const Duration(milliseconds: 500));
@@ -47,7 +51,29 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // If not default credentials, try API login
+        // Check for static service provider credentials
+        if (_emailController.text == 'service123@gmail.com' &&
+            _passwordController.text == 'tms0310') {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const MainWrapperService()),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Welcome Service Provider!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return;
+        }
+
+        // If not static credentials, proceed with API login
+        final isServiceProvider =
+            _isServiceProviderLogin(_passwordController.text);
         final response = await _authService.login(
           _emailController.text,
           _passwordController.text,
@@ -55,15 +81,22 @@ class _LoginPageState extends State<LoginPage> {
 
         if (!mounted) return;
 
-        // Successfully logged in
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
+          MaterialPageRoute(
+            builder: (context) => isServiceProvider
+                ? const MainWrapperService()
+                : const MainWrapper(),
+          ),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response['message'] ?? 'Login successful'),
+            content: Text(
+              isServiceProvider
+                  ? 'Welcome Service Provider!'
+                  : (response['message'] ?? 'Login successful'),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -153,7 +186,8 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: !_isPasswordVisible,
                   decoration: InputDecoration(
                     labelText: 'Passkey',
-                    hintText: 'Passkey',
+                    hintText:
+                        'Enter passkey (prefix with "tms" for service provider)',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
