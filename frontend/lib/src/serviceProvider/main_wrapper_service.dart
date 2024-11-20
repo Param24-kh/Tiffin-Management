@@ -16,7 +16,7 @@ class _MainWrapperState extends State<MainWrapperService> {
 
   // Pages in the order they appear in bottom nav
   final List<Widget> _pages = [
-    const HomePage(),
+    const ServiceProviderHomePage(),
     const PollSystem(),
     const TiffinServicePage(),
     const ProfilePage(),

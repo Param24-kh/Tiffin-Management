@@ -186,8 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: !_isPasswordVisible,
                   decoration: InputDecoration(
                     labelText: 'Passkey',
-                    hintText:
-                        'Enter passkey (prefix with "tms" for service provider)',
+                    hintText: 'Enter passkey',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
