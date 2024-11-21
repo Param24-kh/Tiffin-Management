@@ -44,51 +44,82 @@ export const addItemToPoll = async (req:Request,res:Response) => {
     }
 }
 
-export const createPoll = async (req:Request,res:Response) => {
-    try{
-    const{centerId} = req.query;
-    const findName = await getCollection<ICenterAccount>('ServiceProvider',centerId?.toString());
-    const find = await findName.findOne({
-        centerId: centerId?.toString()
-    });
-    const name = find!.centerName;
-    const pollColl = await getCollection<IPoll>('polls', centerId?.toString());
-    const findPoll = await pollColl.findOne({
-        centerId: centerId?.toString()
-    });
-    if(findPoll){
-        return res.status(400).json({
-            message: "Poll already exists",
-            success: false
-        })
-    }
-    const pollId = new ObjectId().toHexString();
-    if(!pollColl){
-        return res.status(404).json({
-            message: "Center not found",
-            success: false
-        })
-    }
-    const poll:IPoll = {
-        pollId: pollId,
-        centerId: centerId?.toString(),
-        centerName: name,
-        items: [],
-        userNameResponse: []
-    }
-    await pollColl.insertOne(poll);
-    return res.status(201).json({
-        message: "Poll created",
-        success: true
-    })
-    }catch(error:any){
-        console.error("An error occurred while creating poll",error);
+export const createPoll = async (req: Request, res: Response) => {
+    try {
+        const { centerId } = req.query;
+        const {
+            centerName,
+            items
+        } = req.body;
+
+        // Validate input
+        if (!centerId) {
+            return res.status(400).json({
+                message: "Center ID is required",
+                success: false
+            });
+        }
+
+        // Find center account to validate center exists
+        const centerCollection = await getCollection<ICenterAccount>('ServiceProvider', centerId.toString());
+
+        const centerAccount = await centerCollection.findOne({
+            centerId: centerId.toString()
+        });
+
+        // Check if poll already exists for this center
+        const pollCollection = await getCollection<IPoll>('polls', centerId.toString());
+        const existingPoll = await pollCollection.findOne({
+            centerId: centerId.toString()
+        });
+
+        if (existingPoll) {
+            return res.status(400).json({
+                message: "Poll already exists for this center",
+                success: false
+            });
+        }
+
+        // Prepare poll object
+        const poll: IPoll = {
+            pollId: new ObjectId().toHexString(),
+            centerId: centerId.toString(),
+            centerName: centerName || "",
+            items: (items || []).map((item: { itemId?: string; itemName: string; itemRating?: number }) => ({
+                itemId: item.itemId || new ObjectId().toHexString(),
+                itemName: item.itemName,
+                itemRating: item.itemRating || 0
+            })),
+            userNameResponse: []
+        };
+
+        // Insert poll
+        const result = await pollCollection.insertOne(poll);
+
+        if (!result) {
+            return res.status(500).json({
+                message: "Failed to create poll",
+                success: false
+            });
+        }
+
+        return res.status(201).json({
+            message: "Poll created successfully",
+            success: true,
+            data: {
+                pollId: poll.pollId
+            }
+        });
+
+    } catch (error: any) {
+        console.error("Error in createPoll:", error);
         return res.status(500).json({
             message: "Internal server error",
-            success: false
-        })
+            success: false,
+            error: error.message
+        });
     }
-}
+};
 
 export const deleteItem = async (req:Request,res:Response) => {
     try{

@@ -11,3 +11,14 @@ export interface IPollItem{
     itemName:string;
     itemRating:number;
 }
+
+
+/*
+{
+    "pollId":"",
+    "centerId":"",
+    "centerName":"",
+    "items":[],
+    "userNameResponse":[]
+}
+*/

@@ -28,12 +28,13 @@ class _PollSystemState extends State<PollSystem> {
   Future<void> _fetchPolls() async {
     try {
       final response = await http.get(
-        Uri.parse('YOUR_API_ENDPOINT/polls?centerId=${widget.centerId}'),
+        Uri.parse(
+            'http://localhost:3000/api/poll/view?centerId=${widget.centerId}'),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          polls = json.decode(response.body)['polls'];
+          polls = json.decode(response.body)['poll'];
           isLoading = false;
         });
       } else {
@@ -47,13 +48,19 @@ class _PollSystemState extends State<PollSystem> {
   Future<void> _createPoll() async {
     try {
       final response = await http.post(
-        Uri.parse('YOUR_API_ENDPOINT/create-poll?centerId=${widget.centerId}'),
-        body: {'name': _pollNameController.text},
+        Uri.parse(
+            'http://localhost:3000/api/poll/create?centerId=${widget.centerId}'),
+        headers: {'Content-Type': 'application/json'},
+        body: '{"name": "${_pollNameController.text}"}',
       );
 
       if (response.statusCode == 201) {
         _pollNameController.clear();
         _fetchPolls();
+      } else if (response.statusCode == 400) {
+        _showErrorDialog('Poll already exists');
+      } else if (response.statusCode == 404) {
+        _showErrorDialog('Center not found');
       } else {
         _showErrorDialog('Failed to create poll');
       }
@@ -66,7 +73,7 @@ class _PollSystemState extends State<PollSystem> {
     try {
       final response = await http.post(
         Uri.parse(
-            'YOUR_API_ENDPOINT/add-item-to-poll?centerId=${widget.centerId}&pollId=$pollId'),
+            'http://localhost:3000/api/poll/addItem?centerId=${widget.centerId}&pollId=$pollId'),
         body: {'name': _pollItemController.text},
       );
 

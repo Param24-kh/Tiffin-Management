@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/src/files/services_page.dart';
+import './services_page.dart';
 import 'package:frontend/src/serviceProvider/profile_page.dart';
 import './PoolingSystemPage.dart';
 import '../auth/login_page.dart';
@@ -26,7 +26,9 @@ class _MainWrapperServiceState extends State<MainWrapperService> {
     _pages = [
       const ServiceProviderHomePage(),
       PollSystem(centerId: widget.userProfile.centerId),
-      const TiffinServicePage(),
+      TiffinServicePage(
+        centerId: widget.userProfile.centerId,
+      ),
       ServiceProviderProfilePage(userProfile: widget.userProfile)
     ];
   }

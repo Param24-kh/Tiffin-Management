@@ -180,15 +180,6 @@ class _ServiceProviderProfilePageState
       child: Column(
         children: [
           TextField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: 'Name',
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
             controller: _phoneController,
             decoration: InputDecoration(
               labelText: 'Phone Number',

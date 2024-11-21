@@ -18,7 +18,11 @@ export const io = new Server(server,{
 
 
 
-app.use(express.json());
+
+app.use(express.json({
+    strict: true, // Enforce strict JSON parsing
+    limit: '1mb' // Optional: set a reasonable payload limit
+    }));
 app.use(cors(
     {
         origin: '*'
