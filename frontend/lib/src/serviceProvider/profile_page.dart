@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_page.dart'; // Import the file with ICenterAccount definition
 
@@ -43,6 +45,17 @@ class _ServiceProviderProfilePageState
         TextEditingController(text: _userProfile.address);
   }
 
+  static const String _baseWebUrl = 'http://localhost:3000/api';
+  static const String _baseAndroidUrl = 'http://10.0.2.2:3000/api';
+  static const String _baseIOSUrl = 'http://127.0.0.1:3000/api';
+
+  String get baseUrl {
+    if (kIsWeb) return _baseWebUrl;
+    if (Platform.isAndroid) return _baseAndroidUrl;
+    if (Platform.isIOS) return _baseIOSUrl;
+    return _baseWebUrl;
+  }
+
   Future<void> _updateProfile() async {
     setState(() {
       _isLoading = true;
@@ -50,7 +63,7 @@ class _ServiceProviderProfilePageState
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/auth/updateService'),
+        Uri.parse('$baseUrl/auth/updateService'),
         headers: {
           'Content-Type': 'application/json',
         },

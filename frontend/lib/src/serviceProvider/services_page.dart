@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class TiffinServicePage extends StatefulWidget {
   final String centerId;
@@ -47,11 +49,21 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
     _fetchServices();
   }
 
+  static const String _baseWebUrl = 'http://localhost:3000/api';
+  static const String _baseAndroidUrl = 'http://10.0.2.2:3000/api';
+  static const String _baseIOSUrl = 'http://127.0.0.1:3000/api';
+
+  String get baseUrl {
+    if (kIsWeb) return _baseWebUrl;
+    if (Platform.isAndroid) return _baseAndroidUrl;
+    if (Platform.isIOS) return _baseIOSUrl;
+    return _baseWebUrl;
+  }
+
   Future<void> _fetchServices() async {
     try {
       final response = await http.get(
-        Uri.parse(
-            'http://localhost:3000/api/vas/getServices?centerId=${widget.centerId}'),
+        Uri.parse('$baseUrl/vas/getServices?centerId=${widget.centerId}'),
       );
 
       if (response.statusCode == 200) {
@@ -209,6 +221,17 @@ class _AddServicePageState extends State<AddServicePage> {
     });
   }
 
+  static const String _baseWebUrl = 'http://localhost:3000/api';
+  static const String _baseAndroidUrl = 'http://10.0.2.2:3000/api';
+  static const String _baseIOSUrl = 'http://127.0.0.1:3000/api';
+
+  String get baseUrl {
+    if (kIsWeb) return _baseWebUrl;
+    if (Platform.isAndroid) return _baseAndroidUrl;
+    if (Platform.isIOS) return _baseIOSUrl;
+    return _baseWebUrl;
+  }
+
   Future<void> _submitService() async {
     if (_formKey.currentState!.validate()) {
       List<Map<String, dynamic>> services = [];
@@ -222,7 +245,7 @@ class _AddServicePageState extends State<AddServicePage> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:3000/api/vas/addService'),
+          Uri.parse('$baseUrl/vas/addService'),
           body: json.encode({
             'centerId': widget.centerId,
             'service': services,

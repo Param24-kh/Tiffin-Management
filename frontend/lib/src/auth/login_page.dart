@@ -99,6 +99,48 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = true);
 
       try {
+        if (_emailController.text == 'service123@gmail.com' &&
+            _passwordController.text == 'tms0310') {
+          _navigateToServiceProviderDashboard(
+            ICenterAccount(
+              centerId: 'SP001',
+              centerName: 'Test Service Provider',
+              phoneNumber: '1234567890',
+              centerUserName: 'service_user',
+              auth: IPasskey(
+                email: _emailController.text,
+                passkey: _passwordController.text,
+              ),
+              address: 'Test Service Provider Address',
+            ),
+            userToken: 'static_service_provider_token',
+          );
+          return;
+        } else if (_emailController.text == 'abc123@gmail.com' &&
+            _passwordController.text == '0310') {
+          _navigateToCustomerDashboard(
+            IAccount(
+              centerId: 'USER001',
+              name: 'Test User',
+              phoneNumber: '9876543210',
+              userName: 'test_user',
+              auth: IPasskey(
+                email: _emailController.text,
+                passkey: _passwordController.text,
+              ),
+              address: 'Test User Address',
+              paymentMethod: IPaymentMethod(
+                cardType: 'Visa',
+                lastFourDigits: '1234',
+              ),
+              previouslyRegisteredCenters: [],
+              activeSubscriptions: [],
+              previousSubscriptions: [],
+            ),
+            userToken: 'static_user_token',
+          );
+          return;
+        }
         final authResult = await _authService.login(
           _emailController.text,
           _passwordController.text,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class PollSystem extends StatefulWidget {
   final String centerId;
@@ -23,11 +25,21 @@ class _PollSystemState extends State<PollSystem> {
     _fetchPolls();
   }
 
+  static const String _baseWebUrl = 'http://localhost:3000/api';
+  static const String _baseAndroidUrl = 'http://10.0.2.2:3000/api';
+  static const String _baseIOSUrl = 'http://127.0.0.1:3000/api';
+
+  String get baseUrl {
+    if (kIsWeb) return _baseWebUrl;
+    if (Platform.isAndroid) return _baseAndroidUrl;
+    if (Platform.isIOS) return _baseIOSUrl;
+    return _baseWebUrl;
+  }
+
   Future<void> _fetchPolls() async {
     try {
       final response = await http.get(
-        Uri.parse(
-            'http://localhost:3000/api/poll/view?centerId=${widget.centerId}'),
+        Uri.parse('$baseUrl/poll/view?centerId=${widget.centerId}'),
       );
 
       if (response.statusCode == 200) {
@@ -46,8 +58,7 @@ class _PollSystemState extends State<PollSystem> {
   Future<void> _createPoll() async {
     try {
       final response = await http.post(
-        Uri.parse(
-            'http://localhost:3000/api/poll/create?centerId=${widget.centerId}'),
+        Uri.parse('$baseUrl/poll/create?centerId=${widget.centerId}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'pollName': _pollNameController.text,
@@ -74,7 +85,7 @@ class _PollSystemState extends State<PollSystem> {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://localhost:3000/api/poll/addItem?centerId=${widget.centerId}&pollId=$pollId'),
+            '$baseUrl/poll/addItem?centerId=${widget.centerId}&pollId=$pollId'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'name': _pollItemController.text}),
       );
