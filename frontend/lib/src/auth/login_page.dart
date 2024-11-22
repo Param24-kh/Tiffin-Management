@@ -4,7 +4,7 @@ import 'package:frontend/src/serviceProvider/main_wrapper_service.dart';
 import 'dart:io';
 import 'auth_service.dart';
 
-// Account interfaces remain the same as in previous implementation
+// Account interfaces
 class IAccount {
   String centerId;
   String name;
@@ -99,60 +99,64 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = true);
 
       try {
-        final response = await _authService.login(
+        final authResult = await _authService.login(
           _emailController.text,
           _passwordController.text,
         );
 
-        final isServiceProvider = _isServiceProviderLogin(
-            _emailController.text, _passwordController.text);
+        if (authResult.token != null && authResult.data != null) {
+          final isServiceProvider = _isServiceProviderLogin(
+              _emailController.text, _passwordController.text);
 
-        if (isServiceProvider) {
-          _navigateToServiceProviderDashboard(
-            ICenterAccount(
-              centerId: response['centerId'] ?? '',
-              centerName: response['centerName'] ?? '',
-              phoneNumber: response['phoneNumber'] ?? '',
-              centerUserName: response['centerUserName'] ?? '',
-              auth: IPasskey(
-                email: _emailController.text,
-                passkey: _passwordController.text,
+          if (isServiceProvider) {
+            _navigateToServiceProviderDashboard(
+              ICenterAccount(
+                centerId: authResult.data['centerId'] ?? '',
+                centerName: authResult.data['centerName'] ?? '',
+                phoneNumber: authResult.data['phoneNumber'] ?? '',
+                centerUserName: authResult.data['userName'] ?? '',
+                auth: IPasskey(
+                  email: _emailController.text,
+                  passkey: _passwordController.text,
+                ),
+                address: authResult.data['address'] ?? '',
               ),
-              address: response['address'] ?? '',
-              centerFeedback: response['centerFeedback'] ?? '',
-              centerRating: response['centerRating'] ?? 0.0,
-            ),
-          );
-        } else {
-          _navigateToCustomerDashboard(
-            IAccount(
-              centerId: response['centerId'] ?? '',
-              name: response['name'] ?? '',
-              phoneNumber: response['phoneNumber'] ?? '',
-              userName: response['userName'] ?? '',
-              auth: IPasskey(
-                email: _emailController.text,
-                passkey: _passwordController.text,
+              userToken: authResult.token,
+            );
+          } else {
+            _navigateToCustomerDashboard(
+              IAccount(
+                centerId: authResult.data['centerId'] ?? '',
+                name: authResult.data['name'] ?? '',
+                phoneNumber: authResult.data['phoneNumber'] ?? '',
+                userName: authResult.data['userName'] ?? '',
+                auth: IPasskey(
+                  email: _emailController.text,
+                  passkey: _passwordController.text,
+                ),
+                address: authResult.data['address'] ?? '',
+                paymentMethod: IPaymentMethod(
+                  cardType: authResult.data['paymentMethod']?['cardType'] ?? '',
+                  lastFourDigits:
+                      authResult.data['paymentMethod']?['lastFourDigits'] ?? '',
+                ),
+                previouslyRegisteredCenters: List<String>.from(
+                    authResult.data['previouslyRegisteredCenters'] ?? []),
+                activeSubscriptions: List<String>.from(
+                    authResult.data['activeSubscriptions'] ?? []),
+                previousSubscriptions: List<String>.from(
+                    authResult.data['previousSubscriptions'] ?? []),
               ),
-              address: response['address'] ?? '',
-              paymentMethod: IPaymentMethod(
-                cardType: response['paymentMethod']?['cardType'] ?? '',
-                lastFourDigits:
-                    response['paymentMethod']?['lastFourDigits'] ?? '',
-              ),
-              previouslyRegisteredCenters: List<String>.from(
-                  response['previouslyRegisteredCenters'] ?? []),
-              activeSubscriptions:
-                  List<String>.from(response['activeSubscriptions'] ?? []),
-              previousSubscriptions:
-                  List<String>.from(response['previousSubscriptions'] ?? []),
-            ),
-          );
+              userToken: authResult.token,
+            );
+          }
+
+          _showSuccessSnackBar(authResult.message ?? 'Login successful');
         }
-
-        _showSuccessSnackBar('Welcome ${_emailController.text}!');
+      } on HttpException catch (e) {
+        _showErrorSnackBar(e.message);
       } catch (e) {
-        _showErrorSnackBar('Login failed: ${e.toString()}');
+        _showErrorSnackBar('Unexpected error occurred');
       } finally {
         if (mounted) {
           setState(() => _isLoading = false);
@@ -161,20 +165,32 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _navigateToCustomerDashboard(IAccount userProfile) {
+  void _navigateToCustomerDashboard(
+    IAccount userProfile, {
+    String? userToken,
+  }) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => MainWrapper(userProfile: userProfile),
+        builder: (context) => MainWrapper(
+          userProfile: userProfile,
+          userToken: userToken,
+        ),
       ),
     );
   }
 
-  void _navigateToServiceProviderDashboard(ICenterAccount userProfile) {
+  void _navigateToServiceProviderDashboard(
+    ICenterAccount userProfile, {
+    String? userToken,
+  }) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => MainWrapperService(userProfile: userProfile),
+        builder: (context) => MainWrapperService(
+          userProfile: userProfile,
+          userToken: userToken,
+        ),
       ),
     );
   }

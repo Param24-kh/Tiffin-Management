@@ -1,5 +1,6 @@
 export interface IPoll{
     pollId:string;
+    pollName:string;
     centerId:string | undefined;
     centerName:string;
     items: IPollItem[];

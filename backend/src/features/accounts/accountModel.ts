@@ -92,7 +92,7 @@ export interface card{
 
 export interface ICenterAccount{
     centerId:string;
-    centerName:string | "";
+    centerName:string | undefined;
     phoneNumber:string;
     centerUserName:string;
     auth: IPasskey;

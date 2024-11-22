@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart' as Lucide;
-import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -51,16 +49,19 @@ class _PollSystemState extends State<PollSystem> {
         Uri.parse(
             'http://localhost:3000/api/poll/create?centerId=${widget.centerId}'),
         headers: {'Content-Type': 'application/json'},
-        body: '{"name": "${_pollNameController.text}"}',
+        body: jsonEncode({
+          'pollName': _pollNameController.text,
+          'centerName':
+              _pollNameController.text, // Using poll name as center name
+          'items': []
+        }),
       );
 
       if (response.statusCode == 201) {
         _pollNameController.clear();
         _fetchPolls();
       } else if (response.statusCode == 400) {
-        _showErrorDialog('Poll already exists');
-      } else if (response.statusCode == 404) {
-        _showErrorDialog('Center not found');
+        _showErrorDialog('Poll already exists for this center');
       } else {
         _showErrorDialog('Failed to create poll');
       }
@@ -74,7 +75,8 @@ class _PollSystemState extends State<PollSystem> {
       final response = await http.post(
         Uri.parse(
             'http://localhost:3000/api/poll/addItem?centerId=${widget.centerId}&pollId=$pollId'),
-        body: {'name': _pollItemController.text},
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'name': _pollItemController.text}),
       );
 
       if (response.statusCode == 200) {
@@ -190,23 +192,36 @@ class _PollSystemState extends State<PollSystem> {
                       margin: const EdgeInsets.all(8),
                       child: ExpansionTile(
                         title: Text(
-                          poll['centerName'] ?? 'Unnamed Poll',
+                          poll['pollName'] ?? 'Unnamed Poll',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        subtitle: Text(
+                            'Center: ${poll['centerName'] ?? 'No Center'}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.add, color: Colors.orange),
                           onPressed: () => _showAddItemDialog(poll['pollId']),
                         ),
                         children: [
-                          if (poll['items'] != null)
-                            ...poll['items'].map<Widget>((item) => ListTile(
-                                  title:
-                                      Text(item['itemName'] ?? 'Unnamed Item'),
-                                  subtitle: Text(
-                                      'Rating: ${item['itemRating'] ?? 0}'),
-                                )),
+                          if (poll['items'] != null && poll['items'].isNotEmpty)
+                            ...poll['items']
+                                .map<Widget>((item) => ListTile(
+                                      title: Text(
+                                          item['itemName'] ?? 'Unnamed Item'),
+                                      trailing: Text(
+                                        'Rating: ${item['itemRating'] ?? 0}',
+                                        style: const TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ))
+                                .toList()
+                          else
+                            const ListTile(
+                              title: Text('No items in this poll'),
+                              subtitle: Text('Add items using the + button'),
+                            ),
                         ],
                       ),
                     );

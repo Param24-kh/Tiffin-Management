@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_page.dart'; // Import the file with ICenterAccount definition
 
@@ -17,6 +19,7 @@ class _ServiceProviderProfilePageState
     extends State<ServiceProviderProfilePage> {
   late ICenterAccount _userProfile;
   bool _isEditing = false;
+  bool _isLoading = false;
 
   // Editing controllers
   late TextEditingController _nameController;
@@ -41,29 +44,57 @@ class _ServiceProviderProfilePageState
   }
 
   Future<void> _updateProfile() async {
-    try {
-      // TODO: Implement actual backend update logic
-      setState(() {
-        _userProfile = ICenterAccount(
-          centerId: _userProfile.centerId,
-          centerName: _centerNameController.text,
-          phoneNumber: _phoneController.text,
-          centerUserName: _userProfile.centerUserName,
-          auth: _userProfile.auth,
-          address: _centerAddressController.text,
-          centerFeedback: _userProfile.centerFeedback,
-          centerRating: _userProfile.centerRating,
-        );
-        _isEditing = false;
-      });
+    setState(() {
+      _isLoading = true;
+    });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/auth/updateService'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': _userProfile.auth.email,
+          'passkey': _userProfile.auth.passkey,
+          'Name': _nameController.text,
+          'phoneNumber': _phoneController.text,
+          'userName': _userProfile.centerUserName,
+          'address': _centerAddressController.text,
+        }),
       );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _userProfile = ICenterAccount(
+            centerId: _userProfile.centerId,
+            centerName: _centerNameController.text,
+            phoneNumber: _phoneController.text,
+            centerUserName: _userProfile.centerUserName,
+            auth: _userProfile.auth,
+            address: _centerAddressController.text,
+            centerFeedback: _userProfile.centerFeedback,
+            centerRating: _userProfile.centerRating,
+          );
+          _isEditing = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile: ${response.body}')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error updating profile: ${e.toString()}')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -90,7 +121,6 @@ class _ServiceProviderProfilePageState
     );
 
     if (shouldLogout == true) {
-      // Clear SharedPreferences and navigate to login
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
@@ -122,16 +152,9 @@ class _ServiceProviderProfilePageState
                 )
               else
                 _buildEditProfileForm(),
-
-              // Center Details Section
               _buildCenterDetailsSection(),
-
-              // Service Statistics (placeholder)
               _buildServiceStatisticsSection(),
-
-              // Other menu items
               ..._buildOtherMenuItems(),
-
               const SizedBox(height: 20),
               _buildLogoutButton(context),
               const SizedBox(height: 20),

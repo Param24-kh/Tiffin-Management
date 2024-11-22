@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import './services_page.dart';
-import 'package:frontend/src/serviceProvider/profile_page.dart';
-import './PoolingSystemPage.dart';
 import '../auth/login_page.dart';
 import 'home_page.dart';
+import './PoolingSystemPage.dart';
+import 'package:frontend/src/serviceProvider/profile_page.dart';
+import './services_page.dart';
 
 class MainWrapperService extends StatefulWidget {
   final ICenterAccount userProfile;
+  final String? userToken;
 
-  const MainWrapperService({Key? key, required this.userProfile})
+  const MainWrapperService(
+      {Key? key, required this.userProfile, this.userToken})
       : super(key: key);
 
   @override

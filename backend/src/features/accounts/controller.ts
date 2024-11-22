@@ -62,7 +62,8 @@ export const logIn = async (req: Request, res: Response) => {
                 return res.status(200).json({
                     success: true,
                     message: "Login Successful",
-                    token: token
+                    token: token,
+                    data: serviceProviderResult
                 });
             }else{
                 return res.status(401).json({
@@ -81,7 +82,8 @@ export const logIn = async (req: Request, res: Response) => {
                 return res.status(201).json({
                     success: true,
                     message: "Login Successful",
-                    token: token
+                    token: token,
+                    data: userResult
                 });
             }else{
                 return res.status(401).json({
@@ -122,7 +124,7 @@ export const signUp = async (req: Request, res: Response) => {
                 centerId: generatePasskey("TMS"),
                 centerName: centerName || "",
                 phoneNumber: phoneNumber || "",
-                centerUserName: "",
+                centerUserName: centerName.replace(/\s+/g, '') + "@tms",
                 auth: {
                     email: email,
                     passkey: passkey,
@@ -369,5 +371,57 @@ export const searchServiceProvider = async(req: Request, res: Response) => {
             success: false,
             message: "Internal Server Error"
         });
+    }
+}
+
+export const updateServiceAccount = async(req: Request, res: Response) => {
+    try{
+        const {email, passkey} = req.body;
+        const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
+        const {
+            centerName,
+            phoneNumber,
+            centerUserName,
+            address,
+            centerFeedback,
+            centerRating
+        } = req.body;
+        const serviceProviderResult = await serviceProviderColl.findOne({
+            "auth.email": email,
+            "auth.passkey": passkey
+        });
+        if(serviceProviderResult !== null){
+            const updatedServiceProvider: ICenterAccount = {
+                centerId: serviceProviderResult.centerId,
+                centerName: centerName || serviceProviderResult.centerName,
+                phoneNumber: phoneNumber || serviceProviderResult.phoneNumber,
+                centerUserName: centerUserName || serviceProviderResult.centerUserName,
+                auth: serviceProviderResult.auth,
+                address: address || serviceProviderResult.address,
+                centerFeedback: centerFeedback || serviceProviderResult.centerFeedback,
+                centerRating: centerRating || serviceProviderResult.centerRating
+            };
+            await serviceProviderColl.updateOne({
+                "auth.email": email,
+                "auth.passkey": passkey
+            }, {
+                $set: updatedServiceProvider
+            });
+            return res.status(200).json({
+                success: true,
+                message: "Service provider account updated successfully"
+            });
+        }else{
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Credentials"
+            });
+        }
+    }catch(error:any){
+        console.error("Error in updateServiceAccount", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        })
     }
 }

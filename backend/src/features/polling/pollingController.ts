@@ -49,6 +49,7 @@ export const createPoll = async (req: Request, res: Response) => {
         const { centerId } = req.query;
         const {
             centerName,
+            pollName,
             items
         } = req.body;
 
@@ -84,6 +85,7 @@ export const createPoll = async (req: Request, res: Response) => {
         const poll: IPoll = {
             pollId: new ObjectId().toHexString(),
             centerId: centerId.toString(),
+            pollName: pollName,
             centerName: centerName || "",
             items: (items || []).map((item: { itemId?: string; itemName: string; itemRating?: number }) => ({
                 itemId: item.itemId || new ObjectId().toHexString(),
@@ -149,6 +151,32 @@ export const deleteItem = async (req:Request,res:Response) => {
         })
     }catch(error:any){
         console.error("An error occurred while deleting item",error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        })
+    }
+}
+export const viewPoll = async (req:Request,res:Response) => {
+    try{
+        const {centerId} = req.query;
+        const pollColl = await getCollection<IPoll>('polls', centerId?.toString());
+        const poll = await pollColl.find({
+            centerId: centerId?.toString
+        }).toArray();
+        if(!poll){
+            return res.status(404).json({
+                message: "Poll not found",
+                success: false
+            })
+        }
+        return res.status(200).json({
+            message: "Poll found",
+            poll,
+            success: true
+        })
+    }catch(error:any){
+        console.error("An error occurred while viewing poll",error);
         return res.status(500).json({
             message: "Internal server error",
             success: false
@@ -256,29 +284,3 @@ export const decrementPoll = async (req:Request,res:Response) => {
     }
 }
 
-export const viewPoll = async (req:Request,res:Response) => {
-    try{
-        const {centerId} = req.query;
-        const pollColl = await getCollection<IPoll>('polls', centerId?.toString());
-        const poll = await pollColl.find({
-            centerId: centerId?.toString
-        }).toArray();
-        if(!poll){
-            return res.status(404).json({
-                message: "Poll not found",
-                success: false
-            })
-        }
-        return res.status(200).json({
-            message: "Poll found",
-            poll,
-            success: true
-        })
-    }catch(error:any){
-        console.error("An error occurred while viewing poll",error);
-        return res.status(500).json({
-            message: "Internal server error",
-            success: false
-        })
-    }
-}

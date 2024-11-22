@@ -8,8 +8,10 @@ import 'services_page.dart';
 
 class MainWrapper extends StatefulWidget {
   final IAccount userProfile;
+  final String? userToken;
 
-  const MainWrapper({Key? key, required this.userProfile}) : super(key: key);
+  const MainWrapper({Key? key, required this.userProfile, this.userToken})
+      : super(key: key);
 
   @override
   State<MainWrapper> createState() => _MainWrapperState();
