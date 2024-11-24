@@ -26,7 +26,7 @@ class _MainWrapperServiceState extends State<MainWrapperService> {
   void initState() {
     super.initState();
     _pages = [
-      const ServiceProviderHomePage(),
+      ServiceProviderHomePage(userProfile: widget.userProfile),
       PollSystem(centerId: widget.userProfile.centerId),
       TiffinServicePage(
         centerId: widget.userProfile.centerId,

@@ -1,9 +1,195 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:frontend/src/auth/login_page.dart';
 import 'dart:async';
 
+import 'package:frontend/src/serviceProvider/PoolingSystemPage.dart';
+
+class PollResultsSection extends StatelessWidget {
+  const PollResultsSection({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Current Poll Results',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFF6B00),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Active',
+                  style: TextStyle(
+                    color: Color(0xFFFF6B00),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Poll Question
+          const Text(
+            'People voted for their favorite cuisine.',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Poll Options
+          _buildPollOption('North Indian', 120, 270, Colors.orange.shade400),
+          const SizedBox(height: 12),
+          _buildPollOption('South Indian', 90, 270, Colors.orange.shade300),
+          const SizedBox(height: 12),
+          _buildPollOption('Continental', 60, 270, Colors.orange.shade200),
+
+          const SizedBox(height: 24),
+
+          // Total Participants
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Participants',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const Text(
+                  '270',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFF6B00),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Poll Duration
+          Row(
+            children: [
+              Icon(Icons.timer_outlined, size: 18, color: Colors.grey.shade600),
+              const SizedBox(width: 8),
+              Text(
+                'Poll ends in 2 hours',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPollOption(String option, int votes, int total, Color color) {
+    final percentage = (votes / total * 100).round();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              option,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              '$votes votes ($percentage%)',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            Container(
+              height: 12,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: votes / total,
+              child: Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class ServiceProviderHomePage extends StatefulWidget {
-  const ServiceProviderHomePage({Key? key}) : super(key: key);
+  final ICenterAccount userProfile; // Add this line
+
+  const ServiceProviderHomePage({Key? key, required this.userProfile})
+      : super(key: key);
 
   @override
   State<ServiceProviderHomePage> createState() =>
@@ -295,14 +481,22 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
         childAspectRatio: 1.2,
         children: [
           _buildShortcutButton(
-            'Employee Management',
+            'Employee Management \n (coming soon)',
             Icons.people,
             () {},
           ),
           _buildShortcutButton(
             'Create New Poll',
             Icons.poll,
-            () {},
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PollSystem(centerId: widget.userProfile.centerId),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -372,7 +566,7 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildWelcomeBanner(),
-            _buildPollResultsCard(),
+            const PollResultsSection(),
             _buildMessagesSection(),
             _buildShortcutButtons(),
           ],
