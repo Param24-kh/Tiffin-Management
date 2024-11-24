@@ -243,11 +243,11 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
+            children: [
               Icon(Icons.waving_hand, color: Colors.white),
               SizedBox(width: 8),
               Text(
-                'Welcome, Service Provider!',
+                'Welcome ${widget.userProfile.centerName}', // Update this line
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -548,7 +548,7 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
         backgroundColor: const Color(0xFFFF6B00),
         elevation: 0,
         title: const Text(
-          'Service Provider Dashboard',
+          'Dashboard',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
