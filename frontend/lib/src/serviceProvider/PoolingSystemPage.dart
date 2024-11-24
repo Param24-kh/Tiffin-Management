@@ -18,6 +18,10 @@ class _PollSystemState extends State<PollSystem> {
   bool isLoading = true;
   final TextEditingController _pollNameController = TextEditingController();
   final TextEditingController _pollItemController = TextEditingController();
+  final TextEditingController _updatePollNameController =
+      TextEditingController();
+  final TextEditingController _updateItemNameController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -53,6 +57,176 @@ class _PollSystemState extends State<PollSystem> {
     } catch (e) {
       _showErrorDialog('Network error: $e');
     }
+  }
+
+  Future<void> _deletePoll(String pollId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(
+            '$baseUrl/poll/delete?centerId=${widget.centerId}&pollId=$pollId'),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchPolls();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Poll deleted successfully')),
+        );
+      } else {
+        _showErrorDialog('Failed to delete poll');
+      }
+    } catch (e) {
+      _showErrorDialog('Network error: $e');
+    }
+  }
+
+  Future<void> _deleteItem(String pollId, String itemId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(
+            '$baseUrl/poll/deleteItem?centerId=${widget.centerId}&pollId=$pollId&itemId=$itemId'),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchPolls();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Item deleted successfully')),
+        );
+      } else {
+        _showErrorDialog('Failed to delete item');
+      }
+    } catch (e) {
+      _showErrorDialog('Network error: $e');
+    }
+  }
+
+  Future<void> _updatePollName(String pollId, String newName) async {
+    try {
+      final response = await http.put(
+        Uri.parse(
+            '$baseUrl/poll/update?centerId=${widget.centerId}&pollId=$pollId'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'pollName': newName}),
+      );
+
+      if (response.statusCode == 200) {
+        _updatePollNameController.clear();
+        _fetchPolls();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Poll updated successfully')),
+        );
+      } else {
+        _showErrorDialog('Failed to update poll');
+      }
+    } catch (e) {
+      _showErrorDialog('Network error: $e');
+    }
+  }
+
+  Future<void> _updateItem(String pollId, String itemId, String newName) async {
+    try {
+      final response = await http.put(
+        Uri.parse(
+            '$baseUrl/poll/updateItem?centerId=${widget.centerId}&pollId=$pollId&itemId=$itemId'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'itemName': newName}),
+      );
+
+      if (response.statusCode == 200) {
+        _updateItemNameController.clear();
+        _fetchPolls();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Item updated successfully')),
+        );
+      } else {
+        _showErrorDialog('Failed to update item');
+      }
+    } catch (e) {
+      _showErrorDialog('Network error: $e');
+    }
+  }
+
+  void _showUpdatePollDialog(dynamic poll) {
+    _updatePollNameController.text = poll['pollName'] ?? '';
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Poll Name'),
+        content: TextField(
+          controller: _updatePollNameController,
+          decoration: const InputDecoration(
+            hintText: 'Enter New Poll Name',
+            labelText: 'Poll Name',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _updatePollName(poll['pollId'], _updatePollNameController.text);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUpdateItemDialog(String pollId, dynamic item) {
+    _updateItemNameController.text = item['itemName'] ?? '';
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Item Name'),
+        content: TextField(
+          controller: _updateItemNameController,
+          decoration: const InputDecoration(
+            hintText: 'Enter New Item Name',
+            labelText: 'Item Name',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _updateItem(
+                  pollId, item['itemId'], _updateItemNameController.text);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(String pollId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Poll'),
+        content: const Text('Are you sure you want to delete this poll?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deletePoll(pollId);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _createPoll() async {
@@ -210,9 +384,24 @@ class _PollSystemState extends State<PollSystem> {
                         ),
                         subtitle: Text(
                             'Center: ${poll['centerName'] ?? 'No Center'}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.add, color: Colors.orange),
-                          onPressed: () => _showAddItemDialog(poll['pollId']),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showUpdatePollDialog(poll),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () =>
+                                  _showDeleteConfirmation(poll['pollId']),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add, color: Colors.orange),
+                              onPressed: () =>
+                                  _showAddItemDialog(poll['pollId']),
+                            ),
+                          ],
                         ),
                         children: [
                           if (poll['items'] != null && poll['items'].isNotEmpty)
@@ -220,11 +409,30 @@ class _PollSystemState extends State<PollSystem> {
                                 .map<Widget>((item) => ListTile(
                                       title: Text(
                                           item['itemName'] ?? 'Unnamed Item'),
-                                      trailing: Text(
-                                        'Rating: ${item['itemRating'] ?? 0}',
-                                        style: const TextStyle(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Rating: ${item['itemRating'] ?? 0}',
+                                            style: const TextStyle(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.edit,
+                                                color: Colors.blue),
+                                            onPressed: () =>
+                                                _showUpdateItemDialog(
+                                                    poll['pollId'], item),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () => _deleteItem(
+                                                poll['pollId'], item['itemId']),
+                                          ),
+                                        ],
                                       ),
                                     ))
                                 .toList()

@@ -22,7 +22,7 @@ export const addItemToPoll = async (req:Request,res:Response) => {
         const newItem = {
             itemId: new ObjectId().toHexString(),
             itemName: name,
-            itemRating: 0
+            itemVote: 0
         }
         const updatedItems = await pollColl.updateOne({
             pollId: pollId?.toString()
@@ -177,6 +177,36 @@ export const viewPoll = async (req:Request,res:Response) => {
         })
     }catch(error:any){
         console.error("An error occurred while viewing poll",error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        })
+    }
+}
+
+export const deletePoll = async(req:Request,res:Response) => {
+    try{
+        const {centerId, pollId} = req.query;
+        const pollColl = await getCollection<IPoll>('polls', centerId?.toString());
+        const poll = await pollColl.findOne({
+            pollId: pollId?.toString()
+        });
+        if(!poll){
+            return res.status(404).json({
+                message: "Poll not found",
+                success: false
+            })
+        }
+        const deletedPoll = await pollColl.deleteOne({
+            pollId: pollId?.toString()
+        });
+        return res.status(200).json({
+            message: "Poll deleted successfully",
+            success: true
+        })
+        
+    }catch(error:any){
+        console.error("An error occurred while deleting poll",error);
         return res.status(500).json({
             message: "Internal server error",
             success: false

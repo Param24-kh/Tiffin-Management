@@ -7,4 +7,5 @@ pollRouter.delete('/deleteItem', deleteItem);
 pollRouter.post('/participate', participateInPoll);
 pollRouter.put('/decrement', decrementPoll);
 pollRouter.get('/view', viewPoll);
+pollRouter.delete('/delete', deleteItem);
 export default pollRouter;
