@@ -4,7 +4,7 @@ import 'package:frontend/src/serviceProvider/main_wrapper_service.dart';
 import 'dart:io';
 import 'auth_service.dart';
 
-// Account interfaces
+// Account interfaces remain the same
 class IAccount {
   String centerId;
   String name;
@@ -90,7 +90,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   bool _isServiceProviderLogin(String email, String passkey) {
-    // Example logic to determine service provider login
     return email.contains('service') || passkey.toLowerCase().startsWith('tms');
   }
 
@@ -141,6 +140,7 @@ class _LoginPageState extends State<LoginPage> {
           );
           return;
         }
+
         final authResult = await _authService.login(
           _emailController.text,
           _passwordController.text,
@@ -355,6 +355,40 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.white,
                           ),
                         ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/forgot_passkey');
+                      },
+                      child: Text(
+                        'Forgot Passkey?',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
