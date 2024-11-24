@@ -2,14 +2,130 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend/src/auth/login_page.dart';
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:frontend/src/serviceProvider/PoolingSystemPage.dart';
 
-class PollResultsSection extends StatelessWidget {
-  const PollResultsSection({Key? key}) : super(key: key);
+class PollResultsSection extends StatefulWidget {
+  final String centerId;
+
+  const PollResultsSection({
+    Key? key,
+    required this.centerId,
+  }) : super(key: key);
+
+  @override
+  State<PollResultsSection> createState() => _PollResultsSectionState();
+}
+
+class _PollResultsSectionState extends State<PollResultsSection> {
+  bool isLoading = true;
+  Map<String, dynamic>? pollData;
+  String baseUrl = 'YOUR_BASE_URL'; // Replace with your actual base URL
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPollData();
+  }
+
+  Future<void> _fetchPollData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/poll/view?centerId=${widget.centerId}'),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          pollData = json.decode(response.body)['poll'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Widget _buildPollOption(
+      String itemName, double votes, double totalVotes, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                itemName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            Text(
+              '${votes.toStringAsFixed(1)} votes',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            Container(
+              height: 12,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: votes / totalVotes,
+              child: Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (pollData == null) {
+      return Container(); // Return empty container if no data
+    }
+
+    final items = pollData!['items'] as List;
+    final totalVotes =
+        items.fold(0.0, (sum, item) => sum + (item['itemVote'] as double));
+
+    final colors = [
+      Colors.orange.shade400,
+      Colors.orange.shade300,
+      Colors.orange.shade200,
+    ];
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
@@ -60,10 +176,10 @@ class PollResultsSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Poll Question
-          const Text(
-            'People voted for their favorite cuisine.',
-            style: TextStyle(
+          // Center Name
+          Text(
+            pollData!['centerName'] ?? 'Food Poll Results',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
@@ -72,13 +188,22 @@ class PollResultsSection extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Poll Options
-          _buildPollOption('North Indian', 120, 270, Colors.orange.shade400),
-          const SizedBox(height: 12),
-          _buildPollOption('South Indian', 90, 270, Colors.orange.shade300),
-          const SizedBox(height: 12),
-          _buildPollOption('Continental', 60, 270, Colors.orange.shade200),
+          ...List.generate(items.length, (index) {
+            final item = items[index];
+            return Column(
+              children: [
+                _buildPollOption(
+                  item['itemName'],
+                  item['itemVote'],
+                  totalVotes,
+                  colors[index % colors.length],
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          }),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
           // Total Participants
           Container(
@@ -91,16 +216,16 @@ class PollResultsSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total Participants',
+                  'Total Votes',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey.shade700,
                   ),
                 ),
-                const Text(
-                  '270',
-                  style: TextStyle(
+                Text(
+                  totalVotes.toStringAsFixed(1),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFFF6B00),
@@ -109,78 +234,8 @@ class PollResultsSection extends StatelessWidget {
               ],
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // Poll Duration
-          Row(
-            children: [
-              Icon(Icons.timer_outlined, size: 18, color: Colors.grey.shade600),
-              const SizedBox(width: 8),
-              Text(
-                'Poll ends in 2 hours',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPollOption(String option, int votes, int total, Color color) {
-    final percentage = (votes / total * 100).round();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              option,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            Text(
-              '$votes votes ($percentage%)',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Stack(
-          children: [
-            Container(
-              height: 12,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            FractionallySizedBox(
-              widthFactor: votes / total,
-              child: Container(
-                height: 12,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -566,7 +621,7 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildWelcomeBanner(),
-            const PollResultsSection(),
+            PollResultsSection(centerId: widget.userProfile.centerId),
             _buildMessagesSection(),
             _buildShortcutButtons(),
           ],
