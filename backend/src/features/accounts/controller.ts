@@ -124,7 +124,7 @@ export const signUp = async (req: Request, res: Response) => {
                 centerId: generatePasskey("TMS"),
                 centerName: centerName || "",
                 phoneNumber: phoneNumber || "",
-                centerUserName: centerName+"@tms",
+                centerUserName: "",
                 auth: {
                     email: email,
                     passkey: passkey,
