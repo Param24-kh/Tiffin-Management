@@ -131,7 +131,7 @@ export const signUp = async (req: Request, res: Response) => {
                     expiresAt: new Date(new Date().setFullYear(2025)).toISOString()
                 },
                 address: address  || "",
-                centerFeedback: "",
+                centerFeedback: [],
                 centerRating: 0,
             };
             

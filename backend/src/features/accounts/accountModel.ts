@@ -97,7 +97,7 @@ export interface ICenterAccount{
     centerUserName:string;
     auth: IPasskey;
     address:string;
-    centerFeedback:string;
+    centerFeedback:string[];
     centerRating:number;
 }
 

@@ -70,7 +70,7 @@ class _ServiceProviderProfilePageState
         body: jsonEncode({
           'email': _userProfile.auth.email,
           'passkey': _userProfile.auth.passkey,
-          'Name': _nameController.text,
+          'centerName': _nameController.text,
           'phoneNumber': _phoneController.text,
           'userName': _userProfile.centerUserName,
           'address': _centerAddressController.text,
