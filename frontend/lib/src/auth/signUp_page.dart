@@ -33,14 +33,12 @@ class _SignUpPageState extends State<SignUpPage> {
           'isServiceProvider': _isServiceProvider,
         };
 
-        print('Sending signup request...'); // Debug log
+        print('Sending signup request with data: $signupData'); // Debug log
 
         final response = await _authService.signup(signupData);
 
-        // Only proceed if the widget is still mounted
         if (!mounted) return;
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Signup successful! You can now login.'),
@@ -49,7 +47,6 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         );
 
-        // Navigate after a brief delay
         await Future.delayed(const Duration(seconds: 2));
 
         if (!mounted) return;
@@ -64,7 +61,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
         if (!mounted) return;
 
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceAll('Exception: ', '')),
@@ -98,143 +94,141 @@ class _SignUpPageState extends State<SignUpPage> {
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Welcome to\nDabba',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      height: 1.2,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 40),
+                    const Text(
+                      'Welcome to\nDabba',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Choose the right tiffin for you',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                      height: 1.5,
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Choose the right tiffin for you',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            hintText: 'Email',
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
+                    const SizedBox(height: 40),
+                    // Email Field
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: 'Email',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: const Icon(Icons.email_outlined),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    // Service Provider Switch
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _isServiceProvider
+                                ? 'Registering as Service Provider'
+                                : 'Registering as Customer',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
                             ),
-                            prefixIcon: const Icon(Icons.email_outlined),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _isServiceProvider
-                                    ? 'Registering as Service Provider'
-                                    : 'Registering as Customer',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              Switch(
-                                value: _isServiceProvider,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isServiceProvider = value;
-                                  });
-                                },
-                                activeColor: const Color(0xFFFF6B00),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed:
-                                _isLoading ? null : _handlePasskeyRequest,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : const Text(
-                                    'Send Passkey',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        if (!_isLoading) ...[
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Already have an account? ',
-                                style: TextStyle(color: Colors.black87),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pushReplacementNamed(
-                                      context, '/login');
-                                },
-                                child: const Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Switch(
+                            value: _isServiceProvider,
+                            onChanged: (value) {
+                              setState(() {
+                                _isServiceProvider = value;
+                              });
+                            },
+                            activeColor: const Color(0xFFFF6B00),
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    // Submit Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handlePasskeyRequest,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text(
+                                'Send Passkey',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                    // Login Link
+                    if (!_isLoading) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Already have an account? ',
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            },
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
