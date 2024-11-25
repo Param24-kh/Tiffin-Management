@@ -56,11 +56,13 @@ class _PollSystemState extends State<PollSystem> {
         Uri.parse('$baseUrl/poll/view?centerId=${widget.centerId}'),
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
         if (!mounted) return;
+        final responseData = json.decode(response.body);
         setState(() {
-          polls = responseData['poll'];
+          polls = responseData['poll'] ?? responseData['data'] ?? [];
           isLoading = false;
         });
       } else {
@@ -498,7 +500,7 @@ class _PollSystemState extends State<PollSystem> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            'Rating: ${item['itemRating'] ?? 0}',
+                                            'Rating: ${item['itemVote'] ?? 0}',
                                             style: const TextStyle(
                                               color: Colors.green,
                                               fontWeight: FontWeight.bold,

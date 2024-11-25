@@ -275,7 +275,7 @@ export const updateUserAccount = async(req: Request, res: Response) =>{
                 centerId: userResult.centerId || "",
                 Name: Name || userResult.Name,
                 phoneNumber: phoneNumber || userResult.phoneNumber,
-                userName: userName || userResult.userName,
+                userName: userName.toString().trim()+"@tms" || userResult.userName,
                 auth: userResult.auth,
                 address: address || userResult.address,
                 paymentMethod: userResult.paymentMethod || {
@@ -395,7 +395,7 @@ export const updateServiceAccount = async(req: Request, res: Response) => {
                 centerId: serviceProviderResult.centerId,
                 centerName: centerName || serviceProviderResult.centerName,
                 phoneNumber: phoneNumber || serviceProviderResult.phoneNumber,
-                centerUserName: centerUserName || serviceProviderResult.centerUserName,
+                centerUserName: centerName.toString().trim()+ "@tms" || serviceProviderResult.centerUserName,
                 auth: serviceProviderResult.auth,
                 address: address || serviceProviderResult.address,
                 centerFeedback: centerFeedback || serviceProviderResult.centerFeedback,

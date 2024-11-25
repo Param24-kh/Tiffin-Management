@@ -1,11 +1,11 @@
 import { Router } from "express";
 const pollRouter = Router();
-import { createPoll, addItemToPoll, deleteItem, participateInPoll, decrementPoll, viewPoll } from "./pollingController";
+import { createPoll, addItemToPoll, deleteItem, participateInPoll, decrementPoll, viewPoll, deletePoll } from "./pollingController";
 pollRouter.post('/create', createPoll);
 pollRouter.post('/addItem', addItemToPoll);
 pollRouter.delete('/deleteItem', deleteItem);
 pollRouter.post('/participate', participateInPoll);
 pollRouter.put('/decrement', decrementPoll);
 pollRouter.get('/view', viewPoll);
-pollRouter.delete('/delete', deleteItem);
+pollRouter.delete('/delete', deletePoll);
 export default pollRouter;

@@ -1,4 +1,3 @@
-import { uuid } from "uuidv4";
 import { getCollection } from "../../db/db";
 import { IPoll } from "./pollingModel";
 import { Request,Response } from "express";
@@ -157,6 +156,7 @@ export const deleteItem = async (req:Request,res:Response) => {
         })
     }
 }
+
 export const viewPoll = async (req:Request,res:Response) => {
     try{
         const {centerId} = req.query;
@@ -172,7 +172,7 @@ export const viewPoll = async (req:Request,res:Response) => {
         }
         return res.status(200).json({
             message: "Poll found",
-            poll,
+            data:poll,
             success: true
         })
     }catch(error:any){
@@ -187,6 +187,7 @@ export const viewPoll = async (req:Request,res:Response) => {
 export const deletePoll = async(req:Request,res:Response) => {
     try{
         const {centerId, pollId} = req.query;
+        console.log(centerId,pollId);
         const pollColl = await getCollection<IPoll>('polls', centerId?.toString());
         const poll = await pollColl.findOne({
             pollId: pollId?.toString()
@@ -200,6 +201,14 @@ export const deletePoll = async(req:Request,res:Response) => {
         const deletedPoll = await pollColl.deleteOne({
             pollId: pollId?.toString()
         });
+        if(!deletedPoll){
+            console.log("failed to delete poll");
+            return res.status(500).json({
+                message: "Failed to delete poll",
+                success: false
+            })
+        }
+        console.log("confirm delete");
         return res.status(200).json({
             message: "Poll deleted successfully",
             success: true
@@ -313,4 +322,3 @@ export const decrementPoll = async (req:Request,res:Response) => {
         })
     }
 }
-

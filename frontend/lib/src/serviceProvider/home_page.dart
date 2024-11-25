@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend/src/auth/login_page.dart';
 import 'dart:async';
+import 'dart:io' show Platform; // Add this line
+import 'package:flutter/foundation.dart'; // Add this line
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/src/serviceProvider/PoolingSystemPage.dart';
@@ -19,9 +21,19 @@ class PollResultsSection extends StatefulWidget {
 }
 
 class _PollResultsSectionState extends State<PollResultsSection> {
-  bool isLoading = true;
-  Map<String, dynamic>? pollData;
-  String baseUrl = 'YOUR_BASE_URL'; // Replace with your actual base URL
+  List<dynamic> _pollItems = [];
+  bool _isLoading = true;
+  String _pollName = 'Current Poll';
+  static const String _baseWebUrl = 'http://localhost:3000/api';
+  static const String _baseAndroidUrl = 'http://10.0.2.2:3000/api';
+  static const String _baseIOSUrl = 'http://127.0.0.1:3000/api';
+
+  String get baseUrl {
+    if (kIsWeb) return _baseWebUrl;
+    if (Platform.isAndroid) return _baseAndroidUrl;
+    if (Platform.isIOS) return _baseIOSUrl;
+    return _baseWebUrl;
+  }
 
   @override
   void initState() {
@@ -36,24 +48,52 @@ class _PollResultsSectionState extends State<PollResultsSection> {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          pollData = json.decode(response.body)['poll'];
-          isLoading = false;
-        });
+        final decodedData = json.decode(response.body);
+
+        if (mounted) {
+          setState(() {
+            if (decodedData['data'] != null && decodedData['data'].isNotEmpty) {
+              final pollData = decodedData['data'][0];
+              _pollName = pollData['pollName'] ?? 'Current Poll';
+
+              // Safely process items with default vote of 0
+              _pollItems = (pollData['items'] as List? ?? [])
+                  .map((item) => {
+                        ...item,
+                        'itemVote':
+                            (item['itemVote'] as num?)?.toDouble() ?? 0.0
+                      })
+                  .toList();
+            } else {
+              _pollItems = [];
+              _pollName = 'Current Poll';
+            }
+            _isLoading = false;
+          });
+        }
       } else {
-        setState(() {
-          isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _pollItems = [];
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      print('Error fetching poll data: $e');
+      if (mounted) {
+        setState(() {
+          _pollItems = [];
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Widget _buildPollOption(
       String itemName, double votes, double totalVotes, Color color) {
+    final double percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -70,7 +110,7 @@ class _PollResultsSectionState extends State<PollResultsSection> {
               ),
             ),
             Text(
-              '${votes.toStringAsFixed(1)} votes',
+              '${votes.toStringAsFixed(0)} votes (${percentage.toStringAsFixed(1)}%)',
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 14,
@@ -91,7 +131,7 @@ class _PollResultsSectionState extends State<PollResultsSection> {
               ),
             ),
             FractionallySizedBox(
-              widthFactor: votes / totalVotes,
+              widthFactor: totalVotes > 0 ? votes / totalVotes : 0,
               child: Container(
                 height: 12,
                 decoration: BoxDecoration(
@@ -106,26 +146,7 @@ class _PollResultsSectionState extends State<PollResultsSection> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (pollData == null) {
-      return Container(); // Return empty container if no data
-    }
-
-    final items = pollData!['items'] as List;
-    final totalVotes =
-        items.fold(0.0, (sum, item) => sum + (item['itemVote'] as double));
-
-    final colors = [
-      Colors.orange.shade400,
-      Colors.orange.shade300,
-      Colors.orange.shade200,
-    ];
-
+  Widget _buildContainerBox({required Widget child}) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
@@ -142,6 +163,69 @@ class _PollResultsSectionState extends State<PollResultsSection> {
           ),
         ],
       ),
+      child: child,
+    );
+  }
+
+  Widget _buildNoActivePoll() {
+    return _buildContainerBox(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.poll_outlined,
+            size: 48,
+            color: Color(0xFFFF6B00),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'No Active Poll',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFF6B00),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'There are currently no active polls for this center',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return _buildContainerBox(
+        child: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B00)),
+          ),
+        ),
+      );
+    }
+
+    if (_pollItems.isEmpty) {
+      return _buildNoActivePoll();
+    }
+
+    final totalVotes = _pollItems.fold(
+        0.0, (sum, item) => sum + (item['itemVote'] as num).toDouble());
+
+    final colors = [
+      Colors.orange.shade400,
+      Colors.orange.shade300,
+      Colors.orange.shade200,
+    ];
+
+    return _buildContainerBox(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -176,9 +260,9 @@ class _PollResultsSectionState extends State<PollResultsSection> {
           ),
           const SizedBox(height: 20),
 
-          // Center Name
+          // Poll Name
           Text(
-            pollData!['centerName'] ?? 'Food Poll Results',
+            _pollName,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -188,13 +272,13 @@ class _PollResultsSectionState extends State<PollResultsSection> {
           const SizedBox(height: 24),
 
           // Poll Options
-          ...List.generate(items.length, (index) {
-            final item = items[index];
+          ...List.generate(_pollItems.length, (index) {
+            final item = _pollItems[index];
             return Column(
               children: [
                 _buildPollOption(
                   item['itemName'],
-                  item['itemVote'],
+                  (item['itemVote'] as num).toDouble(),
                   totalVotes,
                   colors[index % colors.length],
                 ),
@@ -224,7 +308,7 @@ class _PollResultsSectionState extends State<PollResultsSection> {
                   ),
                 ),
                 Text(
-                  totalVotes.toStringAsFixed(1),
+                  totalVotes.toStringAsFixed(0),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -252,21 +336,36 @@ class ServiceProviderHomePage extends StatefulWidget {
 }
 
 class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
+  late PageController _pageController;
+  Timer? _autoScrollTimer;
   late PageController _bannerController;
   int _currentBannerIndex = 0;
-  Timer? _autoScrollTimer;
+  final int totalPages = 3; // Define the totalPages variable
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: 0);
     _bannerController = PageController();
     _startAutoScroll();
   }
 
   void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (mounted) {
-        final nextPage = (_currentBannerIndex + 1) % 2;
+    _autoScrollTimer = Timer.periodic(Duration(seconds: 5), (_) {
+      if (_pageController.hasClients && mounted) {
+        int nextPage =
+            (((_pageController.page?.toInt() ?? 0) + 1) % totalPages).toInt();
+        _pageController.animateToPage(
+          nextPage,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        _currentBannerIndex = (_currentBannerIndex + 1) % 2;
+        _bannerController.animateToPage(
+          _currentBannerIndex,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
         _bannerController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -278,6 +377,7 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
 
   @override
   void dispose() {
+    _pageController.dispose();
     _autoScrollTimer?.cancel();
     _bannerController.dispose();
     super.dispose();
