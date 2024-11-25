@@ -61,50 +61,50 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
   }
 
   Future<void> _fetchServices() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/vas/getServices?centerId=${widget.centerId}'),
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-
-        if (responseData['success']) {
+        final responseData = json.decode(response.body);
+        if (responseData['success'] == true) {
           setState(() {
             _valueAddedServices =
-                (responseData['data'] as List).map((serviceData) {
-              return ValueAddedService(
-                serviceId: serviceData['seviceId'],
-                centerId: serviceData['centerId'],
-                services:
-                    (serviceData['service'] as List).map<Item>((itemData) {
-                  return Item(
-                    itemId: itemData['ItemId'],
-                    itemName: itemData['ItemName'],
-                    itemDescription: itemData['itemDescription'],
-                    price: (itemData['price'] as num).toDouble(),
-                  );
-                }).toList(),
-              );
-            }).toList();
+                (responseData['data'] as List?)?.map((serviceData) {
+                      return ValueAddedService(
+                        serviceId: serviceData['seviceId'] ?? '',
+                        centerId: serviceData['centerId'] ?? '',
+                        services: ((serviceData['service'] as List?) ?? [])
+                            .map<Item>((itemData) {
+                          return Item(
+                            itemId: itemData['ItemId'] ?? '',
+                            itemName: itemData['ItemName'] ?? 'Unnamed Item',
+                            itemDescription:
+                                itemData['itemDescription'] ?? 'No description',
+                            price:
+                                (itemData['price'] as num?)?.toDouble() ?? 0.0,
+                          );
+                        }).toList(),
+                      );
+                    }).toList() ??
+                    [];
             _isLoading = false;
           });
         } else {
-          setState(() {
-            _errorMessage =
-                responseData['message'] ?? 'Failed to load services';
-            _isLoading = false;
-          });
+          throw Exception(responseData['message'] ?? 'Unknown error');
         }
       } else {
-        setState(() {
-          _errorMessage = 'Failed to load services';
-          _isLoading = false;
-        });
+        throw Exception('Failed to load services');
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'An error occurred: ${e.toString()}';
+        _errorMessage = e.toString();
         _isLoading = false;
       });
     }
@@ -114,23 +114,22 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
     try {
       final response = await http.delete(
         Uri.parse(
-            '$baseUrl/vas/deleteService?centerId=${widget.centerId}&serviceId=$serviceId'),
+            '$baseUrl/vas/deleteService?centerId=${widget.centerId}&serviceId=${serviceId}'),
+        headers: {'Content-Type': 'application/json'},
       );
 
-      if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200 && responseData['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Service deleted successfully')),
         );
         _fetchServices();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete service')),
-        );
+        throw Exception(responseData['message'] ?? 'Failed to delete service');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('An error occurred while deleting: ${e.toString()}')),
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
   }
@@ -554,14 +553,17 @@ class _EditServicePageState extends State<EditServicePage> {
       });
 
       try {
-        List<Map<String, dynamic>> updatedServices = [];
-        for (int i = 0; i < _nameControllers.length; i++) {
-          updatedServices.add({
-            'ItemName': _nameControllers[i].text,
-            'itemDescription': _descriptionControllers[i].text,
-            'price': double.parse(_priceControllers[i].text),
-          });
-        }
+        List<Map<String, dynamic>> updatedServices = _nameControllers
+            .asMap()
+            .map((index, nameController) {
+              return MapEntry(index, {
+                'ItemName': nameController.text,
+                'itemDescription': _descriptionControllers[index].text,
+                'price': double.parse(_priceControllers[index].text),
+              });
+            })
+            .values
+            .toList();
 
         final response = await http.put(
           Uri.parse(
@@ -572,7 +574,8 @@ class _EditServicePageState extends State<EditServicePage> {
           }),
         );
 
-        if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (response.statusCode == 200 && responseData['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Service updated successfully'),
@@ -581,7 +584,8 @@ class _EditServicePageState extends State<EditServicePage> {
           );
           Navigator.pop(context, true);
         } else {
-          throw Exception('Failed to update service');
+          throw Exception(
+              responseData['message'] ?? 'Failed to update service');
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
