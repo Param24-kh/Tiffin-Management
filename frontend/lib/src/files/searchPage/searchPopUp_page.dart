@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'serviceProvider_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io'; // Add this import
 
 class ServiceProviderDetailsPopup extends StatelessWidget {
   final ServiceProvider provider;
 
   const ServiceProviderDetailsPopup({Key? key, required this.provider})
       : super(key: key);
+
+  final String _baseUrlWeb = 'http://localhost:3000/api'; // Update this URL
+  final String _baseUrlAndroid = 'http://10.0.2.2:3000/api';
+
+  String get baseUrl {
+    if (kIsWeb) return _baseUrlWeb;
+    if (Platform.isAndroid) return _baseUrlAndroid;
+    return _baseUrlWeb;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +81,7 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
 
               _buildInfoSection(
                 title: 'Contact',
-                content: provider.contactNumber ?? 'Contact not available',
+                content: provider.phoneNumber ?? 'Contact not available',
                 icon: Icons.phone,
               ),
 
@@ -82,7 +96,7 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
                   },
                   icon: Icon(Icons.subscriptions, color: Colors.white),
                   label: Text(
-                    'Subscribe to Service',
+                    'Subscribe to Tiffin Center',
                     style: TextStyle(color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -175,11 +189,81 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
                 backgroundColor: Colors.orange.shade700,
               ),
               child: Text('Confirm', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                // TODO: Implement actual subscription logic
+              onPressed: () async {
                 Navigator.of(context).pop();
-                _showSubscriptionSuccess(context);
+                await _showSubscriptionSuccessAsync(context);
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Subscription Success Dialog
+  Future<void> _showSubscriptionSuccessAsync(BuildContext context) async {
+    try {
+      // Retrieve user credentials from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final userName = prefs.getString('userName');
+      final email = prefs.getString('email');
+
+      // Check if user credentials exist
+      if (userName == null || email == null) {
+        _showErrorDialog(context, 'Please log in to subscribe');
+        return;
+      }
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: Colors.orange.shade700,
+            ),
+          );
+        },
+      );
+      final response = await http.post(
+        Uri.parse('baseUrl/auth/subscribe'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'userName': userName,
+          'email': email,
+          'centerId':
+              provider.centerId, // Assuming ServiceProvider has a centerId
+        }),
+      );
+      Navigator.of(context).pop();
+
+      if (response.statusCode == 200) {
+        _showSubscriptionSuccess(context);
+      } else {
+        final responseBody = json.decode(response.body);
+        _showErrorDialog(
+            context, responseBody['message'] ?? 'Subscription failed');
+      }
+    } catch (error) {
+      Navigator.of(context).pop();
+      _showErrorDialog(context, 'An Error occurred. Please try again later');
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Subscription Error',
+              style: TextStyle(color: Colors.red.shade800)),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child:
+                  Text('OK', style: TextStyle(color: Colors.orange.shade700)),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );

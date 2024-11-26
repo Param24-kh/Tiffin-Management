@@ -423,3 +423,46 @@ export const updateServiceAccount = async(req: Request, res: Response) => {
         })
     }
 }
+
+
+export const subscribe = async(req: Request, res: Response) => {
+    try{
+        const {userName, email, centerId} = req.body;
+        const userColl = await getCollection<IAccount>("User", null);
+        const userResult = await userColl.findOne({
+            "auth.email": email,
+            "userName": userName
+        });
+        const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
+        const serviceProviderResult = await serviceProviderColl.findOne({
+            "centerId": centerId
+        });
+        if(!userResult || !serviceProviderResult){
+            return res.status(404).json({
+                success: true,
+                message: "User or Service Provider not found"
+            });
+        }
+    const subscription =  await userColl.updateOne({
+        "auth.email" : email,
+        userName: userName,
+    },
+    {
+        $push: {
+            activeSubscriptions: centerId
+        }
+    });
+    if(subscription){
+        return res.status(200).json({
+            success: true,
+            message: "Subscription successful"
+        });
+    }
+    }catch(error:any){
+        console.error("Error in subscribe", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}
