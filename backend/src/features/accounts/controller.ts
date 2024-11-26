@@ -356,10 +356,8 @@ export const updateUserAccount = async(req: Request, res: Response) =>{
 
 export const searchServiceProvider = async(req: Request, res: Response) => {
     try{
-        const {centerName} = req.body;
         const serviceProviderColl = await getCollection<ICenterAccount>("ServiceProvider", null);
         const serviceProviderResult = await serviceProviderColl.find({
-            "centerName": centerName
         }).toArray();
         return res.status(200).json({
             success: true,
