@@ -7,7 +7,7 @@
     "dev": "tsc && nodemon"
   },
   "keywords": [],
-  "author": "",
+  "author": "Rishabh Maheshwari",
   "license": "ISC",
   "dependencies": {
     "@types/argon2": "^0.15.0",
