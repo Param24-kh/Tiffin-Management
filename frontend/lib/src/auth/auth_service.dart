@@ -39,9 +39,9 @@ class AuthService {
         throw HttpException(responseData['message'] ?? 'Login failed');
       }
     } on SocketException {
-      throw HttpException('No Internet connection');
+      throw const HttpException('No Internet connection');
     } on TimeoutException {
-      throw HttpException('Connection timed out');
+      throw const HttpException('Connection timed out');
     } catch (e) {
       throw HttpException('Login error: ${e.toString()}');
     }
@@ -71,9 +71,9 @@ class AuthService {
         throw HttpException(responseData['message'] ?? 'Signup failed');
       }
     } on SocketException {
-      throw HttpException('No internet connection');
+      throw const HttpException('No internet connection');
     } on TimeoutException {
-      throw HttpException('Connection timed out');
+      throw const HttpException('Connection timed out');
     } catch (e) {
       throw HttpException('Signup error: ${e.toString()}');
     }

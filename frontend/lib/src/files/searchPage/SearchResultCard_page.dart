@@ -5,7 +5,7 @@ import './searchPopUp_page.dart';
 class SearchResultCard extends StatelessWidget {
   final ServiceProvider provider;
 
-  const SearchResultCard({Key? key, required this.provider}) : super(key: key);
+  const SearchResultCard({super.key, required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +45,12 @@ class SearchResultCard extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   provider.description ?? 'No description available',
                   style: TextStyle(color: Colors.orange.shade700),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

@@ -9,8 +9,7 @@ import '../auth/login_page.dart'; // Import the file with ICenterAccount definit
 class ServiceProviderProfilePage extends StatefulWidget {
   final ICenterAccount userProfile;
 
-  const ServiceProviderProfilePage({Key? key, required this.userProfile})
-      : super(key: key);
+  const ServiceProviderProfilePage({super.key, required this.userProfile});
 
   @override
   _ServiceProviderProfilePageState createState() =>
@@ -278,7 +277,7 @@ class _ServiceProviderProfilePageState
         ),
         ListTile(
           title: const Text('Operational Status'),
-          subtitle: Text(_userProfile.centerRating?.toString() ?? 'Active'),
+          subtitle: Text(_userProfile.centerRating.toString() ?? 'Active'),
         ),
       ],
     );
@@ -288,13 +287,13 @@ class _ServiceProviderProfilePageState
     return ExpansionTile(
       title: const Text('Service Statistics'),
       children: [
-        ListTile(
-          title: const Text('Active Subscriptions'),
+        const ListTile(
+          title: Text('Active Subscriptions'),
           subtitle: Text('0'), // Placeholder value or replace with actual field
         ),
         ListTile(
           title: const Text('Monthly Revenue'),
-          subtitle: Text(_userProfile.centerFeedback?.toString() ?? 'N/A'),
+          subtitle: Text(_userProfile.centerFeedback.toString() ?? 'N/A'),
         ),
       ],
     );

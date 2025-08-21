@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 class PollSystem extends StatefulWidget {
   final String centerId;
 
-  const PollSystem({Key? key, required this.centerId}) : super(key: key);
+  const PollSystem({super.key, required this.centerId});
 
   @override
   _PollSystemState createState() => _PollSystemState();

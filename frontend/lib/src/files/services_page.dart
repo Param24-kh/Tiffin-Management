@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class TiffinServicePage extends StatefulWidget {
-  const TiffinServicePage({Key? key}) : super(key: key);
+  const TiffinServicePage({super.key});
   @override
   _TiffinServicePageState createState() => _TiffinServicePageState();
 }
 
 class _TiffinServicePageState extends State<TiffinServicePage> {
   // Sample data for value-added services
-  List<ValueAddedService> _valueAddedServices = [
+  final List<ValueAddedService> _valueAddedServices = [
     ValueAddedService(
       provider: 'Nakoda Tiffin Center',
       services: [
@@ -42,7 +42,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tiffin Services'),
+        title: const Text('Tiffin Services'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -51,7 +51,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
           itemBuilder: (context, index) {
             final service = _valueAddedServices[index];
             return Card(
-              margin: EdgeInsets.symmetric(vertical: 8.0),
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15.0),
               ),
@@ -62,27 +62,27 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                   children: [
                     Text(
                       service.provider,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 8.0),
-                    ...service.services.map((s) => Text(s)).toList(),
-                    SizedBox(height: 16.0),
+                    const SizedBox(height: 8.0),
+                    ...service.services.map((s) => Text(s)),
+                    const SizedBox(height: 16.0),
                     Align(
                       alignment: Alignment.centerRight,
                       child: ElevatedButton(
                         onPressed: () {
                           // Navigate to payment page or handle payment logic
                         },
-                        child: Text('Choose Plan'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30.0),
                           ),
                         ),
+                        child: Text('Choose Plan'),
                       ),
                     ),
                   ],

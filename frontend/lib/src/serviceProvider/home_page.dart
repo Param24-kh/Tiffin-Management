@@ -12,9 +12,9 @@ class PollResultsSection extends StatefulWidget {
   final String centerId;
 
   const PollResultsSection({
-    Key? key,
+    super.key,
     required this.centerId,
-  }) : super(key: key);
+  });
 
   @override
   State<PollResultsSection> createState() => _PollResultsSectionState();
@@ -327,8 +327,7 @@ class _PollResultsSectionState extends State<PollResultsSection> {
 class ServiceProviderHomePage extends StatefulWidget {
   final ICenterAccount userProfile; // Add this line
 
-  const ServiceProviderHomePage({Key? key, required this.userProfile})
-      : super(key: key);
+  const ServiceProviderHomePage({super.key, required this.userProfile});
 
   @override
   State<ServiceProviderHomePage> createState() =>
@@ -351,13 +350,13 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
   }
 
   void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(Duration(seconds: 5), (_) {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (_pageController.hasClients && mounted) {
         int nextPage =
             (((_pageController.page?.toInt() ?? 0) + 1) % totalPages).toInt();
         _pageController.animateToPage(
           nextPage,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
         _currentBannerIndex = (_currentBannerIndex + 1) % 2;
@@ -399,11 +398,11 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
         children: [
           Row(
             children: [
-              Icon(Icons.waving_hand, color: Colors.white),
-              SizedBox(width: 8),
+              const Icon(Icons.waving_hand, color: Colors.white),
+              const SizedBox(width: 8),
               Text(
                 'Welcome ${widget.userProfile.centerName}', // Update this line
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -423,7 +422,7 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
 
   Widget _buildPollResultsCard() {
     // Total votes calculation
-    final totalVotes = 120 + 90 + 60;
+    const totalVotes = 120 + 90 + 60;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -482,7 +481,7 @@ class _ServiceProviderHomePageState extends State<ServiceProviderHomePage> {
               ),
               Text(
                 '$totalVotes',
-                style: TextStyle(
+                style: const TextStyle(
                   color: Color(0xFFFF6B00),
                   fontWeight: FontWeight.bold,
                 ),

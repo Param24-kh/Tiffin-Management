@@ -18,7 +18,7 @@ class BannerData {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -203,14 +203,14 @@ class _HomePageState extends State<HomePage> {
     return AppBar(
       backgroundColor: const Color(0xFFFF6B00),
       elevation: 0,
-      title: Row(
+      title: const Row(
         children: [
-          const Icon(Icons.location_on, color: Colors.white, size: 20),
-          const SizedBox(width: 8),
+          Icon(Icons.location_on, color: Colors.white, size: 20),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               'Medicaps University, AB road Pigdamber, Rau, Indore',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -502,10 +502,10 @@ class _HomePageState extends State<HomePage> {
   Widget _buildExpenseChart() {
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: false),
+        gridData: const FlGridData(show: false),
         titlesData: FlTitlesData(
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -556,7 +556,7 @@ class _HomePageState extends State<HomePage> {
             color: const Color(0xFFFF6B00),
             barWidth: 3,
             isStrokeCapRound: true,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               color: const Color(0xFFFF6B00).withOpacity(0.1),

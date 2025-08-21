@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 
 class TiffinServicePage extends StatefulWidget {
   final String centerId;
-  const TiffinServicePage({Key? key, required this.centerId}) : super(key: key);
+  const TiffinServicePage({super.key, required this.centerId});
 
   @override
   _TiffinServicePageState createState() => _TiffinServicePageState();
@@ -114,14 +114,14 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
     try {
       final response = await http.delete(
         Uri.parse(
-            '$baseUrl/vas/deleteService?centerId=${widget.centerId}&serviceId=${serviceId}'),
+            '$baseUrl/vas/deleteService?centerId=${widget.centerId}&serviceId=$serviceId'),
         headers: {'Content-Type': 'application/json'},
       );
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200 && responseData['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Service deleted successfully')),
+          const SnackBar(content: Text('Service deleted successfully')),
         );
         _fetchServices();
       } else {
@@ -138,11 +138,11 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Value Added Services'),
+        title: const Text('Value Added Services'),
         backgroundColor: Colors.orange,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.orange))
+          ? const Center(child: CircularProgressIndicator(color: Colors.orange))
           : _errorMessage.isNotEmpty
               ? Center(
                   child: Column(
@@ -150,14 +150,14 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                     children: [
                       Text(
                         _errorMessage,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                       ),
                       ElevatedButton(
                         onPressed: _fetchServices,
-                        child: Text('Retry'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                         ),
+                        child: Text('Retry'),
                       ),
                     ],
                   ),
@@ -172,7 +172,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                           itemBuilder: (context, index) {
                             final service = _valueAddedServices[index];
                             return Card(
-                              margin: EdgeInsets.symmetric(vertical: 8.0),
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15.0),
                               ),
@@ -187,7 +187,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                                       children: [
                                         Text(
                                           'Service ${index + 1}',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 18.0,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -195,7 +195,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                                         Row(
                                           children: [
                                             IconButton(
-                                              icon: Icon(Icons.edit,
+                                              icon: const Icon(Icons.edit,
                                                   color: Colors.orange),
                                               onPressed: () {
                                                 Navigator.push(
@@ -211,7 +211,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                                               },
                                             ),
                                             IconButton(
-                                              icon: Icon(Icons.delete,
+                                              icon: const Icon(Icons.delete,
                                                   color: Colors.red),
                                               onPressed: () => _deleteService(
                                                   service.serviceId),
@@ -220,13 +220,13 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 8.0),
+                                    const SizedBox(height: 8.0),
                                     ...service.services.map((item) => ListTile(
                                           title: Text(item.itemName),
                                           subtitle: Text(item.itemDescription),
                                           trailing: Text(
                                             '\$${item.price.toStringAsFixed(2)}',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.orange,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -254,17 +254,17 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
                               ),
                             ).then((_) => _fetchServices());
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Text(
                               'Add New Service',
                               style: TextStyle(fontSize: 18),
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                         ),
@@ -278,7 +278,7 @@ class _TiffinServicePageState extends State<TiffinServicePage> {
 
 class AddServicePage extends StatefulWidget {
   final String centerId;
-  const AddServicePage({Key? key, required this.centerId}) : super(key: key);
+  const AddServicePage({super.key, required this.centerId});
 
   @override
   _AddServicePageState createState() => _AddServicePageState();
@@ -338,12 +338,12 @@ class _AddServicePageState extends State<AddServicePage> {
 
         if (response.statusCode == 201) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Service added successfully!')),
+            const SnackBar(content: Text('Service added successfully!')),
           );
           Navigator.of(context).pop();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to add service')),
+            const SnackBar(content: Text('Failed to add service')),
           );
         }
       } catch (e) {
@@ -358,34 +358,34 @@ class _AddServicePageState extends State<AddServicePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add New Service'),
+        title: const Text('Add New Service'),
         backgroundColor: Colors.orange,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           children: [
             ...List.generate(_nameControllers.length, (index) {
               return Card(
-                margin: EdgeInsets.symmetric(vertical: 8.0),
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Item ${index + 1}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18.0,
                           fontWeight: FontWeight.bold,
                           color: Colors.orange,
                         ),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       TextFormField(
                         controller: _nameControllers[index],
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Service Name',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -399,10 +399,10 @@ class _AddServicePageState extends State<AddServicePage> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       TextFormField(
                         controller: _descriptionControllers[index],
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Service Description',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -416,10 +416,10 @@ class _AddServicePageState extends State<AddServicePage> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       TextFormField(
                         controller: _priceControllers[index],
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Price',
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
@@ -442,24 +442,24 @@ class _AddServicePageState extends State<AddServicePage> {
                 ),
               );
             }),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton.icon(
               onPressed: _addServiceItem,
-              icon: Icon(Icons.add),
-              label: Text('Add Another Item'),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Another Item'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                padding: EdgeInsets.symmetric(vertical: 16.0),
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _submitService,
-              child: Text('Submit Service'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                padding: EdgeInsets.symmetric(vertical: 16.0),
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
               ),
+              child: Text('Submit Service'),
             ),
           ],
         ),
@@ -473,10 +473,10 @@ class EditServicePage extends StatefulWidget {
   final ValueAddedService service;
 
   const EditServicePage({
-    Key? key,
+    super.key,
     required this.centerId,
     required this.service,
-  }) : super(key: key);
+  });
 
   @override
   _EditServicePageState createState() => _EditServicePageState();
@@ -577,7 +577,7 @@ class _EditServicePageState extends State<EditServicePage> {
         final responseData = json.decode(response.body);
         if (response.statusCode == 200 && responseData['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Service updated successfully'),
               backgroundColor: Colors.green,
             ),
@@ -606,11 +606,11 @@ class _EditServicePageState extends State<EditServicePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Service'),
+        title: const Text('Edit Service'),
         backgroundColor: Colors.orange,
       ),
       body: _isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(
                 color: Colors.orange,
               ),
@@ -618,15 +618,15 @@ class _EditServicePageState extends State<EditServicePage> {
           : Form(
               key: _formKey,
               child: ListView(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 children: [
                   ...List.generate(
                     _nameControllers.length,
                     (index) => Card(
-                      margin: EdgeInsets.only(bottom: 16.0),
+                      margin: const EdgeInsets.only(bottom: 16.0),
                       elevation: 2,
                       child: Padding(
-                        padding: EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -635,7 +635,7 @@ class _EditServicePageState extends State<EditServicePage> {
                               children: [
                                 Text(
                                   'Item ${index + 1}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.orange,
@@ -643,15 +643,15 @@ class _EditServicePageState extends State<EditServicePage> {
                                 ),
                                 if (_nameControllers.length > 1)
                                   IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete, color: Colors.red),
                                     onPressed: () => _removeServiceItem(index),
                                   ),
                               ],
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             TextFormField(
                               controller: _nameControllers[index],
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Item Name',
                                 border: OutlineInputBorder(),
                                 focusedBorder: OutlineInputBorder(
@@ -665,10 +665,10 @@ class _EditServicePageState extends State<EditServicePage> {
                                 return null;
                               },
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             TextFormField(
                               controller: _descriptionControllers[index],
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Description',
                                 border: OutlineInputBorder(),
                                 focusedBorder: OutlineInputBorder(
@@ -683,10 +683,10 @@ class _EditServicePageState extends State<EditServicePage> {
                               },
                               maxLines: 3,
                             ),
-                            SizedBox(height: 16.0),
+                            const SizedBox(height: 16.0),
                             TextFormField(
                               controller: _priceControllers[index],
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Price',
                                 border: OutlineInputBorder(),
                                 focusedBorder: OutlineInputBorder(
@@ -694,7 +694,7 @@ class _EditServicePageState extends State<EditServicePage> {
                                 ),
                                 prefixText: '\$ ',
                               ),
-                              keyboardType: TextInputType.numberWithOptions(
+                              keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -711,32 +711,32 @@ class _EditServicePageState extends State<EditServicePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   ElevatedButton.icon(
                     onPressed: _addServiceItem,
-                    icon: Icon(Icons.add),
-                    label: Text('Add New Item'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add New Item'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: _updateService,
-                    child: Text(
-                      'Update Service',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
+                    ),
+                    child: Text(
+                      'Update Service',
+                      style: TextStyle(fontSize: 16.0),
                     ),
                   ),
                 ],

@@ -10,8 +10,7 @@ import 'dart:io'; // Add this import
 class ServiceProviderDetailsPopup extends StatelessWidget {
   final ServiceProvider provider;
 
-  const ServiceProviderDetailsPopup({Key? key, required this.provider})
-      : super(key: key);
+  const ServiceProviderDetailsPopup({super.key, required this.provider});
 
   final String _baseUrlWeb = 'http://localhost:3000/api'; // Update this URL
   final String _baseUrlAndroid = 'http://10.0.2.2:3000/api';
@@ -94,8 +93,8 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
                     // TODO: Implement subscription logic
                     _showSubscriptionConfirmation(context);
                   },
-                  icon: Icon(Icons.subscriptions, color: Colors.white),
-                  label: Text(
+                  icon: const Icon(Icons.subscriptions, color: Colors.white),
+                  label: const Text(
                     'Subscribe to Tiffin Center',
                     style: TextStyle(color: Colors.white),
                   ),
@@ -181,14 +180,14 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
               'Are you sure you want to subscribe to ${provider.centerName}?'),
           actions: [
             TextButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
               onPressed: () => Navigator.of(context).pop(),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange.shade700,
               ),
-              child: Text('Confirm', style: TextStyle(color: Colors.white)),
+              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _showSubscriptionSuccessAsync(context);
@@ -280,8 +279,8 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 80),
-                SizedBox(height: 20),
+                const Icon(Icons.check_circle, color: Colors.green, size: 80),
+                const SizedBox(height: 20),
                 Text(
                   'Subscription Successful!',
                   style: TextStyle(
@@ -289,7 +288,7 @@ class ServiceProviderDetailsPopup extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: Colors.orange.shade800),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'You have subscribed to ${provider.centerName}.',
                   textAlign: TextAlign.center,

@@ -10,8 +10,7 @@ class MainWrapperService extends StatefulWidget {
   final String? userToken;
 
   const MainWrapperService(
-      {Key? key, required this.userProfile, this.userToken})
-      : super(key: key);
+      {super.key, required this.userProfile, this.userToken});
 
   @override
   State<MainWrapperService> createState() => _MainWrapperServiceState();

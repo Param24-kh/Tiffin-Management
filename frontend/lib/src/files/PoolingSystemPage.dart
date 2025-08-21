@@ -3,7 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart' as Lucide;
 import 'dart:math';
 
 class PollSystem extends StatefulWidget {
-  const PollSystem({Key? key}) : super(key: key);
+  const PollSystem({super.key});
   @override
   _PollSystemState createState() => _PollSystemState();
 }
@@ -119,7 +119,7 @@ class _PollSystemState extends State<PollSystem> {
                                     children: [
                                       Row(
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Lucide.LucideIcons.utensils,
                                             color: Colors.orange,
                                             size: 20,
@@ -136,7 +136,7 @@ class _PollSystemState extends State<PollSystem> {
                                       ),
                                       Row(
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Lucide.LucideIcons.users,
                                             color: Colors.grey,
                                             size: 16,

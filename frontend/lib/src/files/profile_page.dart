@@ -7,7 +7,7 @@ import '../auth/login_page.dart'; // Import the interfaces
 class ProfilePage extends StatefulWidget {
   final IAccount userProfile;
 
-  const ProfilePage({Key? key, required this.userProfile}) : super(key: key);
+  const ProfilePage({super.key, required this.userProfile});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -164,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildProfileHeader() {
     return Column(
       children: [
-        CircleAvatar(
+        const CircleAvatar(
           radius: 50,
           backgroundColor: Colors.orange,
           child: Icon(Icons.person, size: 50, color: Colors.white),

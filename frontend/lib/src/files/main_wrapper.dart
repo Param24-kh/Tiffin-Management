@@ -10,8 +10,7 @@ class MainWrapper extends StatefulWidget {
   final IAccount userProfile;
   final String? userToken;
 
-  const MainWrapper({Key? key, required this.userProfile, this.userToken})
-      : super(key: key);
+  const MainWrapper({super.key, required this.userProfile, this.userToken});
 
   @override
   State<MainWrapper> createState() => _MainWrapperState();

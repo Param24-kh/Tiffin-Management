@@ -8,7 +8,7 @@ import './searchPage/SearchResultCard_page.dart';
 import './searchPage/serviceProvider_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -203,11 +203,11 @@ class AnimatedSearchBar extends StatelessWidget {
   final VoidCallback onClear;
 
   const AnimatedSearchBar({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onChanged,
     required this.onClear,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
